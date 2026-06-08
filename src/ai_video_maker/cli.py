@@ -106,6 +106,13 @@ def command_capabilities(args: argparse.Namespace) -> None:
     for item in plan["capabilities"]:
         marker = "required" if item["required"] else "optional"
         print(f"- {item['name']}: {marker}, {item['status']}, {item['action']}")
+    browser_preflight = plan.get("browser_preflight", {})
+    if browser_preflight.get("enabled"):
+        print("browser_preflight:")
+        print(f"  status: {browser_preflight['status']}")
+        print(f"  target_url: {browser_preflight['target_url']}")
+        print(f"  target_kind: {browser_preflight['target_kind']}")
+        print(f"  recording: {browser_preflight['recording']['enabled']}")
 
 
 def command_voice(args: argparse.Namespace) -> None:

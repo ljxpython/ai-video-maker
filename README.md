@@ -72,6 +72,7 @@ cd "<project-root>"
 ".venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
 ".venv/bin/ai-video-maker" validate --pipeline "pipeline.example.yml"
 ".venv/bin/ai-video-maker" capabilities --pipeline "pipeline.example.yml"
+".venv/bin/ai-video-maker" capabilities --pipeline "templates/pipelines/browser_local_demo.yml"
 ```
 
 运行 P1 pipeline harness：
@@ -181,6 +182,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [x] 实现 `pipeline.yml` 驱动的 P1 run/status 流程。
 - [x] 实现 `pipeline.yml` validate 命令和 schema 文档。
 - [x] 实现 `$browser` / `$chrome` / `$computer-use` dry-run capability adapter。
+- [x] 实现 `$browser` 本地 Web Demo 预检模板和 `browser_preflight.yml`。
 - [ ] 支持仓库讲解、产品演示、SOP 教程三类模板。
 - [ ] 生成视频脚本、旁白稿和字幕。
 - [ ] 使用 `$browser` 录制网页 Demo。

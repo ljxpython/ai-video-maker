@@ -1,0 +1,59 @@
+project:
+  name: "Local Web Demo"
+  type: "general_demo"
+
+source:
+  type: "user_request"
+  value: "检查一个本地 Web Demo 页面，确认它适合录制成横屏 YouTube 演示视频。"
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 60
+  language: "zh-CN"
+  style: "横屏技术演示，浏览器画面清晰，字幕不遮挡核心 UI"
+
+capabilities:
+  browser:
+    required: true
+    target_url: "http://localhost:8000"
+    viewport:
+      width: 1920
+      height: 1080
+    checks:
+      - "page_load"
+      - "title_present"
+      - "screenshot_non_blank"
+    recording:
+      enabled: false
+      duration_seconds: 10
+      output: "assets/browser/local_web_demo.mp4"
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+script:
+  narration: |
+    这是本地 Web Demo 的浏览器预检任务。
+    AI Video Maker 会先生成需求 brief 和视频方案，再给出 browser preflight 计划。
+    P0 阶段不会真的打开浏览器或录屏，只会确认目标地址、视口、检查项和录制意图。
+    后续 execution gate 通过后，才会接入真实的浏览器操作能力。
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

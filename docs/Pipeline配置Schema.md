@@ -32,6 +32,18 @@ video:
 capabilities:
   browser:
     required: false
+    target_url: "http://localhost:8000"
+    viewport:
+      width: 1920
+      height: 1080
+    checks:
+      - "page_load"
+      - "title_present"
+      - "screenshot_non_blank"
+    recording:
+      enabled: false
+      duration_seconds: 10
+      output: "assets/browser/local_web_demo.mp4"
   chrome:
     required: false
   computer_use:
@@ -98,6 +110,13 @@ GUI 工具是能力适配器，不是核心依赖。
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `capabilities.browser.required` | boolean | 是否需要 `$browser` |
+| `capabilities.browser.target_url` | string | 浏览器预检目标 URL |
+| `capabilities.browser.viewport.width` | integer | 浏览器视口宽度 |
+| `capabilities.browser.viewport.height` | integer | 浏览器视口高度 |
+| `capabilities.browser.checks` | string[] | 预检检查项 |
+| `capabilities.browser.recording.enabled` | boolean | 是否计划录制 |
+| `capabilities.browser.recording.duration_seconds` | integer | 计划录制秒数 |
+| `capabilities.browser.recording.output` | string | 计划录制输出路径 |
 | `capabilities.chrome.required` | boolean | 是否需要 `$chrome` |
 | `capabilities.computer_use.required` | boolean | 是否需要 `$computer-use` |
 
@@ -116,6 +135,13 @@ runs/<run_id>/plan/capability_plan.yml
 ```
 
 P0 阶段只生成 dry-run 计划，不会真正打开浏览器、Chrome 或桌面应用。
+
+本地 Web Demo 预检模板：
+
+```bash
+ai-video-maker validate --pipeline templates/pipelines/browser_local_demo.yml
+ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
+```
 
 ### `upload`
 
@@ -138,6 +164,7 @@ P1 不会自动上传或发布视频。上传和发布必须分别通过 `upload
 - 正整数是否大于 0。
 - boolean 字段是否为 `true` 或 `false`。
 - GUI capability 是否使用合法结构。
+- browser preflight 的 URL、viewport、checks、recording 配置是否合法。
 - 上传启用时是否强制要求确认。
 
 示例：

@@ -62,6 +62,25 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(ctx.state()["required_capabilities"], ["browser"])
             self.assertFalse(ctx.path("audio/narration.mp3").exists())
 
+    def test_browser_target_generates_preflight_plan(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pipeline_path = write_project_files(root, gui_required=True, browser_target_url="http://localhost:8000")
+            ctx = create_run(root, run_id="browser-run")
+            initialize_pipeline_run(ctx, pipeline_path)
+
+            approve_gate(ctx, "brief", summary="brief ok")
+            advance_pipeline(ctx)
+
+            preflight = read_yaml(ctx.path("plan/browser_preflight.yml"))
+            self.assertEqual(preflight["target_url"], "http://localhost:8000")
+            self.assertEqual(preflight["target_kind"], "local_web")
+            self.assertEqual(preflight["status"], "ready_for_execution_gate")
+
+            artifacts = read_yaml(ctx.artifacts_path)
+            ids = {item["id"] for item in artifacts["artifacts"]}
+            self.assertIn("browser_preflight", ids)
+
     def test_status_summary_includes_approvals_and_artifacts(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -88,7 +107,15 @@ class PipelineTests(unittest.TestCase):
             },
             "voice": {"provider": "edge-tts", "voice": "zh-CN-XiaoxiaoNeural"},
             "render": {"fps": 24, "burn_subtitles": True, "auto_edit": True},
-            "capabilities": {"browser": {"required": False}},
+            "capabilities": {
+                "browser": {
+                    "required": False,
+                    "target_url": "http://localhost:8000",
+                    "viewport": {"width": 1920, "height": 1080},
+                    "checks": ["page_load"],
+                    "recording": {"enabled": False, "duration_seconds": 10, "output": "assets/browser/demo.mp4"},
+                }
+            },
             "upload": {"enabled": False, "confirmation": "required"},
         }
 
@@ -106,6 +133,15 @@ class PipelineTests(unittest.TestCase):
                 "language": "",
             },
             "render": {"fps": "24", "burn_subtitles": True, "auto_edit": "yes"},
+            "capabilities": {
+                "browser": {
+                    "required": False,
+                    "target_url": "",
+                    "checks": [],
+                    "viewport": {"width": 0, "height": "1080"},
+                    "recording": {"enabled": True},
+                }
+            },
             "upload": {"enabled": True, "confirmation": "optional"},
         }
 
@@ -117,6 +153,11 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("video.language must be a non-empty string", errors)
         self.assertIn("render.fps must be a positive integer", errors)
         self.assertIn("render.auto_edit must be true or false", errors)
+        self.assertIn("capabilities.browser.target_url must be a non-empty string", errors)
+        self.assertIn("capabilities.browser.checks must be a non-empty list of strings", errors)
+        self.assertIn("capabilities.browser.viewport.width must be a positive integer", errors)
+        self.assertIn("capabilities.browser.viewport.height must be a positive integer", errors)
+        self.assertIn("capabilities.browser.recording.duration_seconds must be a positive integer", errors)
         self.assertIn("upload.confirmation must be required when upload.enabled is true", errors)
 
     def test_completed_pipeline_clears_next_action(self):
@@ -153,7 +194,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result["next_action"], "")
 
 
-def write_project_files(root: Path, gui_required: bool) -> Path:
+def write_project_files(root: Path, gui_required: bool, browser_target_url: str = "") -> Path:
     (root / "templates" / "briefs").mkdir(parents=True)
     (root / "templates" / "storyboards").mkdir(parents=True)
     (root / "templates" / "briefs" / "general_demo.yml").write_text(
@@ -165,32 +206,34 @@ def write_project_files(root: Path, gui_required: bool) -> Path:
         encoding="utf-8",
     )
     pipeline_path = root / "pipeline.yml"
-    pipeline_path.write_text(
-        "\n".join(
-            [
-                "project:",
-                "  name: AI Video Maker",
-                "  type: general_demo",
-                "source:",
-                "  type: user_request",
-                "  value: 介绍 AI Video Maker",
-                "video:",
-                "  platform: youtube",
-                "  target_duration: 60",
-                "  language: zh-CN",
-                "capabilities:",
-                "  browser:",
-                f"    required: {str(gui_required).lower()}",
-                "script:",
-                "  narration: |",
-                "    测试旁白。",
-                "upload:",
-                "  enabled: false",
-                "",
-            ]
-        ),
-        encoding="utf-8",
+    lines = [
+        "project:",
+        "  name: AI Video Maker",
+        "  type: general_demo",
+        "source:",
+        "  type: user_request",
+        "  value: 介绍 AI Video Maker",
+        "video:",
+        "  platform: youtube",
+        "  target_duration: 60",
+        "  language: zh-CN",
+        "capabilities:",
+        "  browser:",
+        f"    required: {str(gui_required).lower()}",
+    ]
+    if browser_target_url:
+        lines.append(f"    target_url: {browser_target_url}")
+    lines.extend(
+        [
+            "script:",
+            "  narration: |",
+            "    测试旁白。",
+            "upload:",
+            "  enabled: false",
+            "",
+        ]
     )
+    pipeline_path.write_text("\n".join(lines), encoding="utf-8")
     return pipeline_path
 
 

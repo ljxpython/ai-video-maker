@@ -220,7 +220,7 @@ pipeline valid
 结果：
 
 ```text
-Ran 26 tests
+Ran 29 tests
 OK
 ```
 

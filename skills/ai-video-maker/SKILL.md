@@ -71,6 +71,12 @@ Inspect GUI capability dry-run:
 ai-video-maker capabilities --pipeline pipeline.example.yml
 ```
 
+Inspect local browser demo preflight:
+
+```bash
+ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
+```
+
 P1 pipeline behavior:
 
 ```text

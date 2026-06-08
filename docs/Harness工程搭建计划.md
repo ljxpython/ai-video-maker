@@ -127,6 +127,12 @@ ai-video-maker validate --pipeline pipeline.example.yml
 ai-video-maker capabilities --pipeline pipeline.example.yml
 ```
 
+查看 `$browser` 本地 Web Demo 预检：
+
+```bash
+ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
+```
+
 继续推进：
 
 ```bash

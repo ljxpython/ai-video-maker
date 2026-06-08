@@ -126,7 +126,96 @@ plan/capability_plan.yml generated
 
 ## 7. 下一步
 
-1. 为 capability task 增加更细的动作类型，例如 `screenshot`、`record_screen`、`upload_file`。
-2. 在 `execution` gate 通过后执行 adapter dry-run task 记录。
-3. 接入 `$browser` 做第一个本地 Web Demo 录制前检查。
+## 7. Browser 本地 Web Demo 预检
+
+新增模板：
+
+```text
+templates/pipelines/browser_local_demo.yml
+```
+
+该模板描述一个本地 Web Demo 预检任务：
+
+```yaml
+capabilities:
+  browser:
+    required: true
+    target_url: "http://localhost:8000"
+    viewport:
+      width: 1920
+      height: 1080
+    checks:
+      - "page_load"
+      - "title_present"
+      - "screenshot_non_blank"
+    recording:
+      enabled: false
+      duration_seconds: 10
+      output: "assets/browser/local_web_demo.mp4"
+```
+
+验证：
+
+```bash
+ai-video-maker validate --pipeline templates/pipelines/browser_local_demo.yml
+ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
+```
+
+输出重点：
+
+```text
+required: browser
+browser_preflight:
+  status: ready_for_execution_gate
+  target_url: http://localhost:8000
+  target_kind: local_web
+  recording: False
+```
+
+## 8. Browser Preflight Smoke
+
+本次执行：
+
+```bash
+ai-video-maker run --pipeline templates/pipelines/browser_local_demo.yml --run-id browser-preflight-smoke --overwrite
+ai-video-maker approve --run runs/browser-preflight-smoke --gate brief --summary "确认本地 Web Demo browser preflight brief"
+ai-video-maker run --run runs/browser-preflight-smoke
+ai-video-maker approve --run runs/browser-preflight-smoke --gate plan --summary "确认 browser preflight 计划但不执行 GUI"
+ai-video-maker run --run runs/browser-preflight-smoke
+```
+
+结果：
+
+```text
+status: awaiting_execution_approval
+current_stage: execution
+artifacts: 7
+```
+
+生成：
+
+```text
+runs/browser-preflight-smoke/plan/browser_preflight.yml
+```
+
+关键内容：
+
+```yaml
+status: ready_for_execution_gate
+target_url: http://localhost:8000
+target_kind: local_web
+actions:
+  - open_target_url
+  - wait_for_page_load
+  - capture_screenshot
+  - verify_non_blank_frame
+```
+
+这次没有打开 `$browser`，没有录屏，没有进入配音渲染。pipeline 在 `execution` gate 前停住，符合安全边界。
+
+## 9. 下一步
+
+1. 在 `execution` gate 通过后执行 adapter dry-run task 记录。
+2. 接入 `$browser` 做真实本地 Web Demo 页面打开和截图检查。
+3. 为 `recording.enabled: true` 增加录制产物 manifest。
 4. 给 `$chrome` 和 `$computer-use` 增加更严格的账号/文件侧效应确认。

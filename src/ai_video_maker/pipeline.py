@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from .artifacts import record_artifact
-from .capabilities import GUI_CAPABILITIES, capability_plan_from_pipeline, required_capability_names
+from .capabilities import GUI_CAPABILITIES, browser_preflight_plan_from_pipeline, capability_plan_from_pipeline, required_capability_names
 from .context import RunContext
 from .io import read_yaml, write_yaml
 from .stages import generate_voice, package, qa, render
@@ -82,6 +82,8 @@ def validate_pipeline(pipeline: dict[str, Any]) -> list[str]:
                 errors.append(f"capabilities.{name} must be a mapping")
                 continue
             _require_bool(errors, config, f"capabilities.{name}.required")
+            if name == "browser":
+                _validate_browser_capability(errors, config)
 
     return errors
 
@@ -128,6 +130,9 @@ def create_plan_from_pipeline(ctx: RunContext) -> None:
     write_yaml(ctx.path("plan/storyboard.yml"), storyboard)
     write_yaml(ctx.path("plan/asset_plan.yml"), _asset_plan_from_pipeline(pipeline))
     write_yaml(ctx.path("plan/capability_plan.yml"), capability_plan_from_pipeline(pipeline))
+    browser_preflight = browser_preflight_plan_from_pipeline(pipeline)
+    if browser_preflight["enabled"]:
+        write_yaml(ctx.path("plan/browser_preflight.yml"), browser_preflight)
     ctx.path("script/narration.zh.txt").write_text(_narration_from_pipeline(pipeline), encoding="utf-8")
     ctx.update_state(
         "awaiting_plan_approval",
@@ -138,6 +143,8 @@ def create_plan_from_pipeline(ctx: RunContext) -> None:
     record_artifact(ctx, "storyboard", "yaml", ctx.path("plan/storyboard.yml"), "plan")
     record_artifact(ctx, "asset_plan", "yaml", ctx.path("plan/asset_plan.yml"), "plan")
     record_artifact(ctx, "capability_plan", "yaml", ctx.path("plan/capability_plan.yml"), "plan")
+    if browser_preflight["enabled"]:
+        record_artifact(ctx, "browser_preflight", "yaml", ctx.path("plan/browser_preflight.yml"), "plan")
     record_artifact(ctx, "narration_script", "text", ctx.path("script/narration.zh.txt"), "plan")
 
 
@@ -299,3 +306,34 @@ def _require_bool(errors: list[str], data: dict[str, Any], dotted_key: str) -> N
     value = data.get(key)
     if not isinstance(value, bool):
         errors.append(f"{dotted_key} must be true or false")
+
+
+def _validate_browser_capability(errors: list[str], config: dict[str, Any]) -> None:
+    if "target_url" in config:
+        _require_text(errors, config, "capabilities.browser.target_url")
+
+    checks = config.get("checks")
+    if checks is not None:
+        if not isinstance(checks, list) or not checks or any(not isinstance(item, str) or not item.strip() for item in checks):
+            errors.append("capabilities.browser.checks must be a non-empty list of strings")
+
+    viewport = config.get("viewport")
+    if viewport is not None:
+        if not isinstance(viewport, dict):
+            errors.append("capabilities.browser.viewport must be a mapping")
+        else:
+            _require_positive_int(errors, viewport, "capabilities.browser.viewport.width")
+            _require_positive_int(errors, viewport, "capabilities.browser.viewport.height")
+
+    recording = config.get("recording")
+    if recording is not None:
+        if not isinstance(recording, dict):
+            errors.append("capabilities.browser.recording must be a mapping")
+        else:
+            _require_bool(errors, recording, "capabilities.browser.recording.enabled")
+            if recording.get("enabled") is True:
+                if not config.get("target_url"):
+                    errors.append("capabilities.browser.target_url must be set when browser recording is enabled")
+                _require_positive_int(errors, recording, "capabilities.browser.recording.duration_seconds")
+            if "output" in recording:
+                _require_text(errors, recording, "capabilities.browser.recording.output")
