@@ -1,0 +1,140 @@
+# Repo Video Maker
+
+Repo Video Maker 是一套免费、可自动化的技术视频制作工具链实验项目。目标是把一个开源仓库变成一条可发布的视频：仓库介绍、安装实操、浏览器或终端演示、AI 配音、字幕、自动剪辑和最终 MP4 导出。
+
+这个项目不做 AI 漫剧，不做素材混剪，专注技术类内容生产。
+
+## 当前能力
+
+- 使用 `edge-tts` 生成 AI 旁白和字幕。
+- 使用 `MoviePy` + `Pillow` 生成带中文标题和烧录字幕的视频。
+- 使用 `auto-editor` 自动剪掉静音和停顿片段。
+- 使用 `Whisper` 作为真实录音转写的备用方案。
+- 使用 FFmpeg 作为底层音视频编码工具。
+- 预留 `$browser` / `$chrome` / `$computer-use` 用于网页实操录制、YouTube Studio 辅助上传和桌面工具操作。
+
+## 为什么不用全 GUI
+
+剪映、CapCut、Kdenlive 这类工具适合人工剪一条视频，但不适合批量、稳定、可复现地生成开源仓库讲解视频。
+
+本项目优先使用命令行和脚本化流程：
+
+```text
+仓库分析 -> 脚本生成 -> 录屏 -> AI 配音 -> 字幕 -> 合成 -> 自动剪辑 -> 导出
+```
+
+## 环境要求
+
+当前已验证环境：
+
+- macOS arm64
+- Python 3.12
+- FFmpeg 8.0.1
+- `edge-tts` 7.2.8
+- `moviepy` 2.2.1
+- `auto-editor` 29.3.1
+- `openai-whisper` 20250625
+- `torch` 2.12.0
+
+注意：当前机器默认 `python3` 是 3.14.0，太新了，容易让 Whisper/Torch 依赖出兼容性问题。建议使用 Python 3.12 创建虚拟环境。
+
+## 快速开始
+
+进入项目目录：
+
+```bash
+cd "/Users/bytedance/Downloads/movie_make"
+```
+
+创建虚拟环境：
+
+```bash
+/opt/homebrew/bin/python3.12 -m venv ".venv"
+```
+
+安装依赖：
+
+```bash
+".venv/bin/python" -m pip install --upgrade pip setuptools wheel
+".venv/bin/python" -m pip install -r "requirements.txt"
+```
+
+验证 CLI：
+
+```bash
+".venv/bin/edge-tts" --version
+".venv/bin/auto-editor" --version
+".venv/bin/whisper" --help
+".venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
+```
+
+## 最小验证
+
+生成 AI 配音和字幕：
+
+```bash
+mkdir -p "output/smoke"
+".venv/bin/edge-tts" \
+  --file "samples/demo_narration.txt" \
+  --voice "zh-CN-XiaoxiaoNeural" \
+  --rate "+0%" \
+  --write-media "output/smoke/demo_narration.mp3" \
+  --write-subtitles "output/smoke/demo_narration.vtt"
+cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
+```
+
+渲染测试视频：
+
+```bash
+".venv/bin/python" "scripts/render_smoke_video.py"
+```
+
+自动剪辑：
+
+```bash
+".venv/bin/auto-editor" \
+  "output/smoke/demo_video.mp4" \
+  -o "output/smoke/demo_video_auto.mp4" \
+  --no-open
+```
+
+## 已知限制
+
+当前 Homebrew FFmpeg 构建缺少 `drawtext` 和 `subtitles` 滤镜，所以本项目没有直接依赖 FFmpeg 画中文标题或烧字幕。
+
+当前处理方式：
+
+```text
+用 Pillow 生成画面和字幕帧，用 MoviePy 组合音频和视频，最后让 FFmpeg 只负责编码。
+```
+
+这条路线更稳，也更方便后续做标题卡、章节卡和竖屏版本。
+
+## 文档
+
+- [视频制作工具链调研与执行方案](./视频制作工具链调研与执行方案.md)
+- [方案 A 安装配置记录](./docs/方案A安装配置记录.md)
+
+## 路线图
+
+- [ ] 输入 GitHub 仓库 URL，自动分析 README、技术栈和启动方式。
+- [ ] 生成仓库介绍视频脚本。
+- [ ] 使用 `$browser` 录制网页 Demo。
+- [ ] 使用终端录制工具生成安装和运行演示片段。
+- [ ] 自动生成横屏 YouTube 版和竖屏 Shorts/抖音版。
+- [ ] 自动生成封面图、标题、简介和标签。
+- [ ] 通过 YouTube Data API 或 YouTube Studio 辅助上传。
+
+## 安全边界
+
+以下动作不会自动执行，必须在操作前确认：
+
+- 创建 GitHub 远程仓库。
+- 上传或发布 YouTube 视频。
+- 使用 Chrome 登录态操作账号。
+- 上传本地文件到第三方平台。
+- 创建 OAuth/API 凭据。
+
+## License
+
+MIT

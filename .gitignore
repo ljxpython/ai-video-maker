@@ -1,0 +1,54 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+client_secret*.json
+token*.json
+credentials*.json
+
+# Generated media
+output/*
+!output/.gitkeep
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.mp3
+*.wav
+*.aac
+*.srt
+*.vtt
+
+# Whisper / model cache
+.cache/
+models/
+
+# macOS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Node, reserved for future browser/video tooling
+node_modules/
+dist/
+build/
+.playwright/
+playwright-report/
+test-results/
