@@ -60,6 +60,7 @@ cd "<project-root>"
 ```bash
 ".venv/bin/python" -m pip install --upgrade pip setuptools wheel
 ".venv/bin/python" -m pip install -r "requirements.txt"
+".venv/bin/python" -m pip install -e "."
 ```
 
 验证 CLI：
@@ -69,6 +70,20 @@ cd "<project-root>"
 ".venv/bin/auto-editor" --version
 ".venv/bin/whisper" --help
 ".venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
+```
+
+运行 P0 harness demo：
+
+```bash
+".venv/bin/ai-video-maker" run-demo \
+  --run-id p0-self-intro \
+  --overwrite
+```
+
+运行单元测试：
+
+```bash
+".venv/bin/python" -m unittest discover -s "tests"
 ```
 
 ## 最小验证
@@ -120,15 +135,16 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [能力适配器与 GUI 工具策略](./docs/能力适配器与GUI工具策略.md)
 - [Harness 工程搭建计划](./docs/Harness工程搭建计划.md)
 - [实操记录：AI Video Maker 自我介绍横屏 Demo](./docs/实操记录-AIVideoMaker自我介绍横屏Demo.md)
+- [实操记录：P0 Harness 自我介绍 Demo](./docs/实操记录-P0Harness自我介绍Demo.md)
 - [视频制作工具链调研与执行方案](./视频制作工具链调研与执行方案.md)
 - [方案 A 安装配置记录](./docs/方案A安装配置记录.md)
 - [AI Video Maker Skill](./skills/ai-video-maker/SKILL.md)
 
 ## 路线图
 
-- [ ] 建立 `pipeline.yml` 到 `runs/<run_id>` 的工程 harness。
-- [ ] 实现需求 brief、storyboard、artifact manifest。
-- [ ] 实现 Gate 1/2/3/4 分阶段确认协议。
+- [x] 建立 `runs/<run_id>` 的 P0 工程 harness。
+- [x] 实现需求 brief、storyboard、artifact manifest。
+- [x] 实现 brief/plan/execution/upload/publish 分阶段确认记录。
 - [ ] 支持仓库讲解、产品演示、SOP 教程三类模板。
 - [ ] 生成视频脚本、旁白稿和字幕。
 - [ ] 使用 `$browser` 录制网页 Demo。
