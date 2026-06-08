@@ -1,0 +1,13 @@
+goal: ""
+audience: ""
+platform: "youtube"
+duration: 180
+language: "zh-CN"
+style: "技术讲解，AI 配音，字幕清晰"
+source_material: []
+must_show: []
+must_avoid: []
+assumptions: []
+upload:
+  enabled: false
+  confirmation: "required"

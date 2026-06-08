@@ -85,9 +85,9 @@ def render_frame(caption):
     caption_font = ImageFont.truetype(str(FONT), 44)
     small_font = ImageFont.truetype(str(FONT), 30)
 
-    centered_text(draw, "方案 A 最小验证", 330, title_font, (255, 255, 255))
-    centered_text(draw, "AI 配音 + 字幕 + MoviePy 合成", 445, subtitle_font, (255, 209, 102))
-    centered_text(draw, "movie_make smoke test", 990, small_font, (128, 143, 160))
+    centered_text(draw, "AI Video Maker", 330, title_font, (255, 255, 255))
+    centered_text(draw, "需求对齐 -> 配音字幕 -> 横屏成片", 445, subtitle_font, (255, 209, 102))
+    centered_text(draw, "ai-video-maker smoke test", 990, small_font, (128, 143, 160))
 
     lines = wrapped_lines(draw, caption, caption_font, 1500)
     if lines:

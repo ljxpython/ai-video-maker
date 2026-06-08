@@ -23,7 +23,7 @@ Playwright/$browser + edge-tts + Whisper + MoviePy + FFmpeg + Auto-Editor
 当前工作目录：
 
 ```text
-/Users/bytedance/Downloads/movie_make
+<project-root>
 ```
 
 已创建目录：
@@ -79,19 +79,19 @@ rtk which pipx
 创建本地虚拟环境：
 
 ```bash
-rtk /opt/homebrew/bin/python3.12 -m venv "/Users/bytedance/Downloads/movie_make/.venv"
+rtk /opt/homebrew/bin/python3.12 -m venv "<project-root>/.venv"
 ```
 
 升级打包工具：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
+rtk "<project-root>/.venv/bin/python" -m pip install --upgrade pip setuptools wheel
 ```
 
 安装依赖：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" -m pip install -r "/Users/bytedance/Downloads/movie_make/requirements.txt"
+rtk "<project-root>/.venv/bin/python" -m pip install -r "<project-root>/requirements.txt"
 ```
 
 `requirements.txt` 内容：
@@ -120,10 +120,10 @@ torch==2.12.0
 验证命令：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/edge-tts" --version
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/auto-editor" --version
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/whisper" --help
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
+rtk "<project-root>/.venv/bin/edge-tts" --version
+rtk "<project-root>/.venv/bin/auto-editor" --version
+rtk "<project-root>/.venv/bin/whisper" --help
+rtk "<project-root>/.venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
 ```
 
 结果：
@@ -146,7 +146,7 @@ https://github.com/WyattBlue/auto-editor/releases/download/29.3.1/auto-editor-ma
 列出中文音色：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/edge-tts" --list-voices | rtk rg "zh-CN.*(Xiaoxiao|Yunxi|Yunjian|Xiaoyi|Xiaochen)"
+rtk "<project-root>/.venv/bin/edge-tts" --list-voices | rtk rg "zh-CN.*(Xiaoxiao|Yunxi|Yunjian|Xiaoyi|Xiaochen)"
 ```
 
 可用音色摘要：
@@ -168,12 +168,12 @@ zh-CN-XiaoxiaoNeural
 生成配音和字幕：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/edge-tts" \
-  --file "/Users/bytedance/Downloads/movie_make/samples/demo_narration.txt" \
+rtk "<project-root>/.venv/bin/edge-tts" \
+  --file "<project-root>/samples/demo_narration.txt" \
   --voice "zh-CN-XiaoxiaoNeural" \
   --rate "+0%" \
-  --write-media "/Users/bytedance/Downloads/movie_make/output/smoke/demo_narration.mp3" \
-  --write-subtitles "/Users/bytedance/Downloads/movie_make/output/smoke/demo_narration.vtt"
+  --write-media "<project-root>/output/smoke/demo_narration.mp3" \
+  --write-subtitles "<project-root>/output/smoke/demo_narration.vtt"
 ```
 
 结果：
@@ -221,15 +221,15 @@ rtk /opt/homebrew/bin/ffmpeg -filters | rtk rg " drawtext| subtitles"
 生成测试标题帧：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" \
-  "/Users/bytedance/Downloads/movie_make/scripts/create_smoke_frame.py"
+rtk "<project-root>/.venv/bin/python" \
+  "<project-root>/scripts/create_smoke_frame.py"
 ```
 
 生成烧字幕 MP4：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" \
-  "/Users/bytedance/Downloads/movie_make/scripts/render_smoke_video.py"
+rtk "<project-root>/.venv/bin/python" \
+  "<project-root>/scripts/render_smoke_video.py"
 ```
 
 结果：
@@ -250,9 +250,9 @@ rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/python" \
 运行：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/auto-editor" \
-  "/Users/bytedance/Downloads/movie_make/output/smoke/demo_video.mp4" \
-  -o "/Users/bytedance/Downloads/movie_make/output/smoke/demo_video_auto.mp4" \
+rtk "<project-root>/.venv/bin/auto-editor" \
+  "<project-root>/output/smoke/demo_video.mp4" \
+  -o "<project-root>/output/smoke/demo_video_auto.mp4" \
   --no-open
 ```
 
@@ -270,12 +270,12 @@ rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/auto-editor" \
 运行：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/whisper" \
-  "/Users/bytedance/Downloads/movie_make/output/smoke/demo_narration.mp3" \
+rtk "<project-root>/.venv/bin/whisper" \
+  "<project-root>/output/smoke/demo_narration.mp3" \
   --model "tiny" \
   --language "zh" \
   --output_format "srt" \
-  --output_dir "/Users/bytedance/Downloads/movie_make/output/smoke/whisper" \
+  --output_dir "<project-root>/output/smoke/whisper" \
   --fp16 "False"
 ```
 
@@ -297,21 +297,21 @@ Whisper CLI 可用，能生成 SRT。
 进入项目目录：
 
 ```bash
-cd "/Users/bytedance/Downloads/movie_make"
+cd "<project-root>"
 ```
 
 激活虚拟环境：
 
 ```bash
-source "/Users/bytedance/Downloads/movie_make/.venv/bin/activate"
+source "<project-root>/.venv/bin/activate"
 ```
 
 不激活也可以直接调用绝对路径：
 
 ```bash
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/edge-tts" --version
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/auto-editor" --version
-rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/whisper" --help
+rtk "<project-root>/.venv/bin/edge-tts" --version
+rtk "<project-root>/.venv/bin/auto-editor" --version
+rtk "<project-root>/.venv/bin/whisper" --help
 ```
 
 ## 12. 需要用户手动设置的事项
@@ -341,8 +341,8 @@ rtk "/Users/bytedance/Downloads/movie_make/.venv/bin/whisper" --help
 已验证产物：
 
 ```text
-/Users/bytedance/Downloads/movie_make/output/smoke/demo_video.mp4
-/Users/bytedance/Downloads/movie_make/output/smoke/demo_video_auto.mp4
+<project-root>/output/smoke/demo_video.mp4
+<project-root>/output/smoke/demo_video_auto.mp4
 ```
 
 下一步可以拿一个真实开源仓库做试点：

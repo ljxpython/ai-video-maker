@@ -1,0 +1,40 @@
+project:
+  name: "ai-video-demo"
+  type: "general_demo"
+
+source:
+  type: "user_request"
+  value: "Explain and demonstrate a workflow requested by the user."
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 180
+  language: "zh-CN"
+  style: "clear technical narration with burned subtitles"
+
+capabilities:
+  browser:
+    required: false
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

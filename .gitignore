@@ -26,6 +26,8 @@ credentials*.json
 # Generated media
 output/*
 !output/.gitkeep
+runs/*
+!runs/.gitkeep
 *.mp4
 *.mov
 *.mkv

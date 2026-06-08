@@ -1,0 +1,29 @@
+title: ""
+target_duration: 180
+aspect_ratio: "16:9"
+sections:
+  - id: "hook"
+    duration: 10
+    purpose: "说明视频价值或展示最终效果"
+    visual: ""
+    narration: ""
+  - id: "context"
+    duration: 30
+    purpose: "说明背景、问题或使用场景"
+    visual: ""
+    narration: ""
+  - id: "steps"
+    duration: 90
+    purpose: "分步骤演示核心流程"
+    visual: ""
+    narration: ""
+  - id: "result"
+    duration: 30
+    purpose: "展示结果和关键产物"
+    visual: ""
+    narration: ""
+  - id: "summary"
+    duration: 20
+    purpose: "总结价值和下一步"
+    visual: ""
+    narration: ""

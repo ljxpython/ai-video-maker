@@ -1,8 +1,10 @@
-# Repo Video Maker
+# AI Video Maker
 
-Repo Video Maker 是一套免费、可自动化的技术视频制作工具链实验项目。目标是把一个开源仓库变成一条可发布的视频：仓库介绍、安装实操、浏览器或终端演示、AI 配音、字幕、自动剪辑和最终 MP4 导出。
+AI Video Maker 是一套免费、可自动化的 AI 视频制作工具链实验项目。目标是让 AI 根据一个视频需求完成目标对齐、内容拆解、脚本生成、素材录制、AI 配音、字幕、剪辑、质检和最终 MP4 导出。
 
-这个项目不做 AI 漫剧，不做素材混剪，专注技术类内容生产。
+仓库讲解是第一个试点场景，但项目不只服务开源仓库。它还面向产品演示、操作教程、SOP 培训、Bug 复现、API/SDK 教程、版本更新说明等技术和业务演示视频。
+
+这个项目不做 AI 漫剧，不做素材混剪，专注结构化说明类视频生产。
 
 ## 当前能力
 
@@ -12,15 +14,16 @@ Repo Video Maker 是一套免费、可自动化的技术视频制作工具链实
 - 使用 `Whisper` 作为真实录音转写的备用方案。
 - 使用 FFmpeg 作为底层音视频编码工具。
 - 预留 `$browser` / `$chrome` / `$computer-use` 用于网页实操录制、YouTube Studio 辅助上传和桌面工具操作。
+- 已沉淀项目定位、工程 harness、模板体系和 skill 设计方案。
 
 ## 为什么不用全 GUI
 
-剪映、CapCut、Kdenlive 这类工具适合人工剪一条视频，但不适合批量、稳定、可复现地生成开源仓库讲解视频。
+剪映、CapCut、Kdenlive 这类工具适合人工剪一条视频，但不适合批量、稳定、可复现地生成技术和业务演示视频。
 
 本项目优先使用命令行和脚本化流程：
 
 ```text
-仓库分析 -> 脚本生成 -> 录屏 -> AI 配音 -> 字幕 -> 合成 -> 自动剪辑 -> 导出
+需求对齐 -> 内容拆解 -> 脚本生成 -> 素材录制 -> AI 配音 -> 字幕 -> 合成 -> 自动剪辑 -> 质检 -> 导出
 ```
 
 ## 环境要求
@@ -43,7 +46,7 @@ Repo Video Maker 是一套免费、可自动化的技术视频制作工具链实
 进入项目目录：
 
 ```bash
-cd "/Users/bytedance/Downloads/movie_make"
+cd "<project-root>"
 ```
 
 创建虚拟环境：
@@ -112,17 +115,31 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 
 ## 文档
 
+- [AI 视频制作助手项目定位与工程方案](./docs/AI视频制作助手项目定位与工程方案.md)
+- [需求对齐到视频发布工作流](./docs/需求对齐到视频发布工作流.md)
+- [能力适配器与 GUI 工具策略](./docs/能力适配器与GUI工具策略.md)
+- [Harness 工程搭建计划](./docs/Harness工程搭建计划.md)
+- [实操记录：AI Video Maker 自我介绍横屏 Demo](./docs/实操记录-AIVideoMaker自我介绍横屏Demo.md)
 - [视频制作工具链调研与执行方案](./视频制作工具链调研与执行方案.md)
 - [方案 A 安装配置记录](./docs/方案A安装配置记录.md)
+- [AI Video Maker Skill](./skills/ai-video-maker/SKILL.md)
 
 ## 路线图
 
-- [ ] 输入 GitHub 仓库 URL，自动分析 README、技术栈和启动方式。
-- [ ] 生成仓库介绍视频脚本。
+- [ ] 建立 `pipeline.yml` 到 `runs/<run_id>` 的工程 harness。
+- [ ] 实现需求 brief、storyboard、artifact manifest。
+- [ ] 实现 Gate 1/2/3/4 分阶段确认协议。
+- [ ] 支持仓库讲解、产品演示、SOP 教程三类模板。
+- [ ] 生成视频脚本、旁白稿和字幕。
 - [ ] 使用 `$browser` 录制网页 Demo。
+- [ ] 使用 `$chrome` 辅助需要登录态的网页和 YouTube Studio。
+- [ ] 使用 `$computer-use` 辅助桌面 GUI 软件和文件选择器。
 - [ ] 使用终端录制工具生成安装和运行演示片段。
+- [ ] 使用 MoviePy/Pillow/FFmpeg 渲染横屏和竖屏视频。
+- [ ] 增加自动 QA：时长、音轨、画面、字幕、关键帧截图。
 - [ ] 自动生成横屏 YouTube 版和竖屏 Shorts/抖音版。
 - [ ] 自动生成封面图、标题、简介和标签。
+- [ ] 沉淀 `skills/ai-video-maker/SKILL.md`。
 - [ ] 通过 YouTube Data API 或 YouTube Studio 辅助上传。
 
 ## 安全边界

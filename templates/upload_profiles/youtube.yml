@@ -1,0 +1,13 @@
+platform: "youtube"
+visibility: "private"
+confirmation: "required"
+metadata:
+  title: ""
+  description: ""
+  tags: []
+package:
+  video: "package/video.mp4"
+  thumbnail: "package/thumbnail.png"
+  title: "package/title.txt"
+  description: "package/description.md"
+  tags: "package/tags.txt"
