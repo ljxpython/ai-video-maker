@@ -213,9 +213,40 @@ actions:
 
 这次没有打开 `$browser`，没有录屏，没有进入配音渲染。pipeline 在 `execution` gate 前停住，符合安全边界。
 
-## 9. 下一步
+## 9. Browser Adapter P1 结果记录
 
-1. 在 `execution` gate 通过后执行 adapter dry-run task 记录。
-2. 接入 `$browser` 做真实本地 Web Demo 页面打开和截图检查。
-3. 为 `recording.enabled: true` 增加录制产物 manifest。
-4. 给 `$chrome` 和 `$computer-use` 增加更严格的账号/文件侧效应确认。
+P1 增加了 `browser-result`，用于把真实浏览器检查结果写回 run。
+
+命令：
+
+```bash
+ai-video-maker browser-result \
+  --run runs/<run_id> \
+  --screenshot output/browser/screenshot.png \
+  --url http://localhost:8000/ \
+  --title "AI Video Maker Browser Demo" \
+  --non-blank
+```
+
+写入：
+
+```text
+runs/<run_id>/qa/browser_preflight.json
+runs/<run_id>/qa/browser_preflight.md
+runs/<run_id>/assets/browser/preflight_screenshot.png
+```
+
+注意：该命令必须在 `execution` gate 通过后才能执行。
+
+实操记录：
+
+```text
+docs/实操记录-BrowserAdapterP1本地页面检查.md
+```
+
+## 10. 下一步
+
+1. 为 `recording.enabled: true` 增加录制产物 manifest。
+2. 将本地页面截图检查封装成更少手工参数的执行命令。
+3. 给 `$chrome` 和 `$computer-use` 增加更严格的账号/文件侧效应确认。
+4. 把 browser preflight 截图纳入后续视频剪辑素材计划。

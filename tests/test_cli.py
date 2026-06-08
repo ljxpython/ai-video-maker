@@ -42,6 +42,62 @@ class CliTests(unittest.TestCase):
         self.assertEqual(args.pipeline, "pipeline.example.yml")
         self.assertTrue(args.json)
 
+    def test_parser_accepts_browser_result(self):
+        parser = build_parser()
+        args = parser.parse_args(
+            [
+                "browser-result",
+                "--run",
+                "runs/demo",
+                "--screenshot",
+                "tmp/screenshot.png",
+                "--url",
+                "http://localhost:8000",
+                "--title",
+                "Demo",
+                "--non-blank",
+            ]
+        )
+        self.assertEqual(args.run, "runs/demo")
+        self.assertEqual(args.screenshot, "tmp/screenshot.png")
+        self.assertTrue(args.non_blank)
+
+    def test_parser_accepts_script(self):
+        parser = build_parser()
+        args = parser.parse_args(["script", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
+    def test_parser_accepts_voice_subtitle(self):
+        parser = build_parser()
+        args = parser.parse_args(["voice-subtitle", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
+    def test_parser_accepts_edit_render(self):
+        parser = build_parser()
+        args = parser.parse_args(["edit-render", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
+    def test_parser_accepts_browser_capture(self):
+        parser = build_parser()
+        args = parser.parse_args(["browser-capture", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
+    def test_parser_accepts_qa_revision(self):
+        parser = build_parser()
+        args = parser.parse_args(["qa-revision", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
+    def test_parser_accepts_publish_package(self):
+        parser = build_parser()
+        args = parser.parse_args(["publish-package", "--run", "runs/demo"])
+
+        self.assertEqual(args.run, "runs/demo")
+
 
 if __name__ == "__main__":
     unittest.main()

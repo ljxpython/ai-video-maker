@@ -1,0 +1,67 @@
+project:
+  name: "AI Video Maker Skills Workflow"
+  type: "general_demo"
+
+source:
+  type: "user_request"
+  value: "介绍 AI Video Maker 项目自己：重点演示用户如何通过 ai-video-maker orchestrator 和 video-brief、video-plan、video-script 子 skills，把一句视频需求推进成可检阅的视频制作方案。"
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 75
+  language: "zh-CN"
+  style: "横屏技术讲解，AI 配音，字幕清晰，强调每一步用户检阅和下一步 skill 建议"
+
+must_show:
+  - "ai-video-maker 是总调度 orchestrator，不是让用户手动跑 CLI"
+  - "video-brief 负责需求对齐，并停在 brief gate"
+  - "video-plan 负责 storyboard、asset plan 和 capability plan，并停在 plan gate"
+  - "video-script 负责旁白、字幕草稿和屏幕操作台本，并给出软 review"
+  - "每个 skill 完成后输出 next_skill_suggestion 和 review_checklist"
+
+must_avoid:
+  - "不要把 CLI 命令讲成用户主入口"
+  - "不要承诺自动上传或发布"
+  - "不要使用 Chrome 登录态或桌面 GUI"
+
+assumptions:
+  - "本 demo 只验证 video-brief -> video-plan -> video-script 的 skills-first 交接链路"
+  - "本 demo 先不执行真实浏览器录屏、配音、剪辑和 YouTube 上传"
+
+capabilities:
+  browser:
+    required: false
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+script:
+  narration: |
+    这是 AI Video Maker 的 skills-first 工作流演示。
+    用户不需要先学习一串命令，而是向 ai-video-maker orchestrator 说清楚视频需求。
+    第一步，video-brief 把需求整理成目标、受众、平台、时长、风格和边界，并停在 brief gate 等用户确认。
+    第二步，video-plan 根据确认后的 brief 生成 storyboard、素材计划和能力计划，并告诉用户下一步建议进入 video-script。
+    第三步，video-script 写出旁白、字幕草稿和屏幕操作台本，完成后给出 review checklist 和 next skill suggestion。
+    如果后面需要网页录制，就进入 browser-capture；如果素材已经够了，就进入 voice-subtitle 和 edit-render。
+    harness 只负责把这些步骤落盘、记录 gate 和产物，让视频制作过程可恢复、可审计、可迭代。
+    这就是这个项目的定位：让 AI 带着用户一步步完成结构化视频制作，而不是让用户自己记住复杂流程。
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

@@ -100,10 +100,96 @@ def generate_voice(ctx: RunContext) -> None:
             command.extend([option, str(value)])
 
     run_command(command)
-    shutil.copyfile(subtitles_vtt, subtitles_srt)
+    subtitles_srt.write_text(vtt_to_srt(subtitles_vtt.read_text(encoding="utf-8")), encoding="utf-8")
+    subtitle_draft = ctx.path("script/subtitle_draft.srt")
+    if subtitles_srt.stat().st_size == 0 and subtitle_draft.exists():
+        shutil.copyfile(subtitle_draft, subtitles_srt)
     ctx.update_state("voice_ready", "voice")
     record_artifact(ctx, "voice", "audio", audio, "voice")
     record_artifact(ctx, "captions", "subtitle", subtitles_srt, "voice")
+
+
+def vtt_to_srt(text: str) -> str:
+    blocks = []
+    cue_lines = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line == "WEBVTT" or line.startswith("NOTE"):
+            if cue_lines:
+                blocks.append(cue_lines)
+                cue_lines = []
+            continue
+        cue_lines.append(line)
+    if cue_lines:
+        blocks.append(cue_lines)
+
+    cues = []
+    for block in blocks:
+        if not block:
+            continue
+        timing_index = 0 if "-->" in block[0] else 1
+        if len(block) <= timing_index:
+            continue
+        timing = block[timing_index]
+        caption_lines = block[timing_index + 1 :]
+        if "-->" not in timing:
+            continue
+        start, end = _vtt_timing_to_milliseconds(timing)
+        cues.append({"start": start, "end": end, "caption_lines": caption_lines})
+
+    for index in range(1, len(cues)):
+        previous = cues[index - 1]
+        current = cues[index]
+        if previous["end"] > current["start"]:
+            previous["end"] = current["start"]
+
+    srt_blocks = []
+    for index, cue in enumerate(cues, start=1):
+        timing = f"{_milliseconds_to_srt(cue['start'])} --> {_milliseconds_to_srt(cue['end'])}"
+        srt_blocks.append("\n".join([str(index), timing, *cue["caption_lines"]]))
+    return "\n\n".join(srt_blocks).rstrip() + ("\n" if srt_blocks else "")
+
+
+def _vtt_timing_to_milliseconds(timing: str) -> tuple[int, int]:
+    parts = timing.split(" --> ")
+    if len(parts) != 2:
+        raise ValueError(f"invalid VTT timing: {timing}")
+    return _vtt_timestamp_to_milliseconds(parts[0]), _vtt_timestamp_to_milliseconds(parts[1])
+
+
+def _vtt_timestamp_to_milliseconds(value: str) -> int:
+    timestamp = value.split()[0]
+    parts = timestamp.split(":")
+    if len(parts) == 2:
+        hours = 0
+        minutes = int(parts[0])
+        seconds_part = parts[1]
+    elif len(parts) == 3:
+        hours = int(parts[0])
+        minutes = int(parts[1])
+        seconds_part = parts[2]
+    else:
+        raise ValueError(f"invalid VTT timestamp: {value}")
+
+    separator = "." if "." in seconds_part else "," if "," in seconds_part else ""
+    if separator:
+        seconds_text, milliseconds_text = seconds_part.split(separator, 1)
+        milliseconds = int(milliseconds_text[:3].ljust(3, "0"))
+    else:
+        seconds_text = seconds_part
+        milliseconds = 0
+    seconds = int(seconds_text)
+    return ((hours * 60 + minutes) * 60 + seconds) * 1000 + milliseconds
+
+
+def _milliseconds_to_srt(value: int) -> str:
+    hours = value // 3_600_000
+    value %= 3_600_000
+    minutes = value // 60_000
+    value %= 60_000
+    seconds = value // 1000
+    milliseconds = value % 1000
+    return f"{hours:02}:{minutes:02}:{seconds:02},{milliseconds:03}"
 
 
 def render(ctx: RunContext) -> None:

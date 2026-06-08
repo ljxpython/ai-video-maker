@@ -126,6 +126,7 @@ def create_plan_from_pipeline(ctx: RunContext) -> None:
     storyboard["title"] = _project_title(pipeline)
     storyboard["target_duration"] = int(video.get("target_duration", storyboard.get("target_duration", 180)))
     storyboard["aspect_ratio"] = str(video.get("aspect_ratio", storyboard.get("aspect_ratio", "16:9")))
+    storyboard["sections"] = _storyboard_sections_from_pipeline(storyboard, pipeline)
 
     write_yaml(ctx.path("plan/storyboard.yml"), storyboard)
     write_yaml(ctx.path("plan/asset_plan.yml"), _asset_plan_from_pipeline(pipeline))
@@ -242,6 +243,97 @@ def _asset_plan_from_pipeline(pipeline: dict[str, Any]) -> dict[str, Any]:
             {"id": "captions", "type": "subtitle", "path": "subtitles/captions.srt"},
         ],
         "capabilities": pipeline.get("capabilities", {}),
+    }
+
+
+def _storyboard_sections_from_pipeline(storyboard: dict[str, Any], pipeline: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_sections = storyboard.get("sections")
+    sections = [dict(item) for item in raw_sections] if isinstance(raw_sections, list) and raw_sections else _default_storyboard_sections()
+    target_duration = int(storyboard.get("target_duration", 180))
+    durations = _scaled_durations(sections, target_duration)
+    prompts = _storyboard_prompt_map(pipeline)
+
+    enriched = []
+    for index, section in enumerate(sections):
+        section_id = str(section.get("id") or f"section_{index + 1}")
+        prompt = prompts.get(section_id, prompts["default"])
+        section["id"] = section_id
+        section["duration"] = durations[index]
+        if not str(section.get("visual", "")).strip():
+            section["visual"] = prompt["visual"]
+        if not str(section.get("narration", "")).strip():
+            section["narration"] = prompt["narration"]
+        enriched.append(section)
+    return enriched
+
+
+def _default_storyboard_sections() -> list[dict[str, Any]]:
+    return [
+        {"id": "hook", "duration": 10, "purpose": "说明视频价值或展示最终效果", "visual": "", "narration": ""},
+        {"id": "context", "duration": 20, "purpose": "说明背景、问题或使用场景", "visual": "", "narration": ""},
+        {"id": "steps", "duration": 35, "purpose": "分步骤演示核心流程", "visual": "", "narration": ""},
+        {"id": "result", "duration": 15, "purpose": "展示结果和关键产物", "visual": "", "narration": ""},
+        {"id": "summary", "duration": 10, "purpose": "总结价值和下一步", "visual": "", "narration": ""},
+    ]
+
+
+def _scaled_durations(sections: list[dict[str, Any]], target_duration: int) -> list[int]:
+    if not sections:
+        return []
+    target = max(1, target_duration)
+    base = []
+    for section in sections:
+        duration = section.get("duration", 1)
+        base.append(duration if isinstance(duration, int) and duration > 0 else 1)
+
+    total = sum(base)
+    scaled = [max(1, round(duration * target / total)) for duration in base]
+    delta = target - sum(scaled)
+    index = 0
+    while delta:
+        slot = index % len(scaled)
+        if delta > 0:
+            scaled[slot] += 1
+            delta -= 1
+        elif scaled[slot] > 1:
+            scaled[slot] -= 1
+            delta += 1
+        index += 1
+    return scaled
+
+
+def _storyboard_prompt_map(pipeline: dict[str, Any]) -> dict[str, dict[str, str]]:
+    title = _project_title(pipeline)
+    source = pipeline.get("source", {})
+    goal = str(source.get("value", title))
+    must_show = pipeline.get("must_show", [])
+    must_show_text = "；".join(str(item) for item in must_show[:3]) if isinstance(must_show, list) and must_show else goal
+
+    return {
+        "hook": {
+            "visual": f"标题卡：{title}，用一行流程展示“需求 -> skills -> 视频包”。",
+            "narration": "先说明用户只需要说出视频需求，AI 会引导下一步 skill，而不是让用户记命令。",
+        },
+        "context": {
+            "visual": "展示主控和子工作流分层：orchestrator、video-brief、video-plan、video-script、harness。",
+            "narration": "解释这个项目的核心不是单次剪辑，而是把视频制作拆成可检阅的 workflow。",
+        },
+        "steps": {
+            "visual": f"三段流程卡：video-brief、video-plan、video-script。重点标出：{must_show_text}",
+            "narration": "按顺序演示 brief gate、plan gate、soft review 和 next_skill_suggestion。",
+        },
+        "result": {
+            "visual": "展示 run 目录产物：brief.yml、storyboard.yml、asset_plan.yml、capability_plan.yml、narration.zh.txt。",
+            "narration": "强调每一步都会落盘，方便恢复、复查、返修和继续制作。",
+        },
+        "summary": {
+            "visual": "结尾卡：下一步可以进入 browser-capture、voice-subtitle、edit-render。",
+            "narration": "总结 AI Video Maker 的定位：AI 带用户一步步完成结构化视频制作。",
+        },
+        "default": {
+            "visual": f"展示 {title} 的相关产物和工作流状态。",
+            "narration": goal,
+        },
     }
 
 

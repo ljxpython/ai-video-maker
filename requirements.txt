@@ -2,4 +2,5 @@ edge-tts
 moviepy
 auto-editor
 openai-whisper
+playwright
 PyYAML

@@ -133,6 +133,17 @@ ai-video-maker capabilities --pipeline pipeline.example.yml
 ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
 ```
 
+记录 `$browser` 本地页面检查结果：
+
+```bash
+ai-video-maker browser-result \
+  --run runs/<run_id> \
+  --screenshot output/browser/screenshot.png \
+  --url http://localhost:8000/ \
+  --title "AI Video Maker Browser Demo" \
+  --non-blank
+```
+
 继续推进：
 
 ```bash

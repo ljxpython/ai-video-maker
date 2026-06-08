@@ -1,0 +1,70 @@
+project:
+  name: "Product Demo"
+  type: "general_demo"
+
+source:
+  type: "product"
+  value: "演示一个产品或 Web 应用：从用户场景出发，录制核心路径，展示结果并说明适用边界。"
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 150
+  language: "zh-CN"
+  style: "横屏产品演示，浏览器画面清晰，操作步骤紧凑，AI 配音自然"
+
+must_show:
+  - "目标用户和演示场景"
+  - "产品入口、关键页面和核心操作路径"
+  - "操作后的结果或价值证明"
+  - "适用边界和下一步行动"
+
+must_avoid:
+  - "不要录入账号密码、token、付款信息或私有用户数据"
+  - "不要展示未获确认的外部账号操作"
+  - "不要让字幕遮挡按钮、表格、输入框或关键状态"
+
+capabilities:
+  browser:
+    required: true
+    target_url: "http://localhost:8000"
+    viewport:
+      width: 1920
+      height: 1080
+    checks:
+      - "page_load"
+      - "title_present"
+      - "screenshot_non_blank"
+    recording:
+      enabled: true
+      duration_seconds: 8
+      output: "assets/browser/demo.webm"
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+script:
+  narration: |
+    这是一个产品演示视频模板。
+    视频先说明目标用户和使用场景，再通过浏览器录制展示核心路径。
+    演示要聚焦真实操作和可见结果，避免录入账号、密钥、付款信息或私有数据。
+    结尾总结产品价值、适用边界和用户下一步可以做什么。
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

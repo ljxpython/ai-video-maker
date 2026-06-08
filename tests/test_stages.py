@@ -5,7 +5,7 @@ from pathlib import Path
 from ai_video_maker.context import create_run
 from ai_video_maker.io import read_yaml
 import ai_video_maker.stages as stages_module
-from ai_video_maker.stages import approve_gate, initialize_run_files
+from ai_video_maker.stages import approve_gate, initialize_run_files, vtt_to_srt
 
 
 class StageTests(unittest.TestCase):
@@ -82,6 +82,26 @@ class StageTests(unittest.TestCase):
             self.assertIn("+2Hz", command)
             self.assertIn("+5%", command)
             self.assertTrue(ctx.path("subtitles/captions.srt").exists())
+            self.assertIn("00:00:00,000", ctx.path("subtitles/captions.srt").read_text(encoding="utf-8"))
+
+    def test_generate_voice_falls_back_to_subtitle_draft(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ctx = create_run(root, run_id="voice-run")
+            ctx.path("script/narration.zh.txt").write_text("hello", encoding="utf-8")
+            ctx.path("script/subtitle_draft.srt").write_text("1\n00:00:00,000 --> 00:00:02,000\nhello\n", encoding="utf-8")
+
+            original = stages_module.run_command
+            stages_module.run_command = lambda args: fake_edge_tts_empty_subtitle(args)
+            try:
+                stages_module.generate_voice(ctx)
+            finally:
+                stages_module.run_command = original
+
+            self.assertEqual(
+                ctx.path("subtitles/captions.srt").read_text(encoding="utf-8"),
+                "1\n00:00:00,000 --> 00:00:02,000\nhello\n",
+            )
 
     def test_render_can_skip_auto_editor_from_pipeline_config(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -126,7 +146,41 @@ def fake_edge_tts(args, calls):
     media = Path(args[args.index("--write-media") + 1])
     subtitles = Path(args[args.index("--write-subtitles") + 1])
     media.write_text("audio", encoding="utf-8")
+    subtitles.write_text("WEBVTT\n\n00:00:00.000 --> 00:00:02.000\nhello\n", encoding="utf-8")
+
+
+def fake_edge_tts_empty_subtitle(args):
+    media = Path(args[args.index("--write-media") + 1])
+    subtitles = Path(args[args.index("--write-subtitles") + 1])
+    media.write_text("audio", encoding="utf-8")
     subtitles.write_text("WEBVTT\n", encoding="utf-8")
+
+
+class SubtitleConversionTests(unittest.TestCase):
+    def test_vtt_to_srt_converts_timestamps(self):
+        srt = vtt_to_srt("WEBVTT\n\n00:00:00.000 --> 00:00:02.500\nhello\n")
+
+        self.assertEqual(srt, "1\n00:00:00,000 --> 00:00:02,500\nhello\n")
+
+    def test_vtt_to_srt_accepts_cue_ids(self):
+        srt = vtt_to_srt("WEBVTT\n\n1\n00:00:00.100 --> 00:00:02.500\nhello\n")
+
+        self.assertEqual(srt, "1\n00:00:00,100 --> 00:00:02,500\nhello\n")
+
+    def test_vtt_to_srt_accepts_comma_milliseconds(self):
+        srt = vtt_to_srt("WEBVTT\n\n1\n00:00:00,100 --> 00:00:02,500\nhello\n")
+
+        self.assertEqual(srt, "1\n00:00:00,100 --> 00:00:02,500\nhello\n")
+
+    def test_vtt_to_srt_removes_overlaps(self):
+        srt = vtt_to_srt(
+            "WEBVTT\n\n"
+            "00:00:00.000 --> 00:00:02.500\nfirst\n\n"
+            "00:00:02.400 --> 00:00:04.000\nsecond\n"
+        )
+
+        self.assertIn("00:00:00,000 --> 00:00:02,400", srt)
+        self.assertIn("00:00:02,400 --> 00:00:04,000", srt)
 
 
 def fake_render_video(kwargs, calls):

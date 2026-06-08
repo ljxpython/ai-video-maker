@@ -1,0 +1,58 @@
+project:
+  name: "Project Introduction Demo"
+  type: "general_demo"
+
+source:
+  type: "user_request"
+  value: "介绍一个项目：讲清楚它的目标、用户、工作流、核心能力、当前进度和下一步计划。"
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 120
+  language: "zh-CN"
+  style: "横屏项目介绍，节奏清楚，AI 配音自然，字幕简洁"
+
+must_show:
+  - "项目一句话定位"
+  - "用户痛点和典型使用场景"
+  - "核心工作流和已完成能力"
+  - "当前限制、风险和下一步路线"
+
+must_avoid:
+  - "不要做空泛营销页式介绍"
+  - "不要把未实现功能说成已上线"
+  - "不要暴露本地路径、账号或私有配置"
+
+capabilities:
+  browser:
+    required: false
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+script:
+  narration: |
+    这是一个项目介绍视频模板。
+    视频先用一句话讲清楚项目定位，再说明它面向谁、解决什么问题。
+    中段展示核心工作流、关键能力和当前进度，避免把计划中的能力包装成既成事实。
+    结尾说明限制、风险和下一步路线，让观众知道如何继续关注或参与。
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

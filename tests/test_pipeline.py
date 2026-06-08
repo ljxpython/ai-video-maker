@@ -40,6 +40,11 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(ctx.path("plan/capability_plan.yml").exists())
             self.assertTrue(ctx.path("script/narration.zh.txt").exists())
 
+            storyboard = read_yaml(ctx.path("plan/storyboard.yml"))
+            self.assertEqual(sum(section["duration"] for section in storyboard["sections"]), 60)
+            self.assertTrue(all(section["visual"] for section in storyboard["sections"]))
+            self.assertTrue(all(section["narration"] for section in storyboard["sections"]))
+
             artifacts = read_yaml(ctx.artifacts_path)
             ids = {item["id"] for item in artifacts["artifacts"]}
             self.assertIn("pipeline", ids)

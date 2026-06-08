@@ -1,0 +1,58 @@
+project:
+  name: "Repository Explainer Demo"
+  type: "general_demo"
+
+source:
+  type: "repository"
+  value: "用一个开源仓库作为素材，讲清楚它解决什么问题、目录结构、核心代码、安装方式和最小实操。"
+
+video:
+  platform: "youtube"
+  aspect_ratio: "16:9"
+  resolution: "1920x1080"
+  target_duration: 180
+  language: "zh-CN"
+  style: "横屏技术讲解，代码画面清晰，AI 配音自然，字幕不遮挡终端和代码"
+
+must_show:
+  - "仓库定位和目标用户"
+  - "README、核心目录和关键入口文件"
+  - "安装、运行、最小示例和最终效果"
+  - "适合观众继续学习或使用的下一步"
+
+must_avoid:
+  - "不要暴露本地绝对路径、账号、邮箱或私有 token"
+  - "不要照读 README，要把结构和实操讲清楚"
+  - "不要承诺未验证的性能、稳定性或生产可用性"
+
+capabilities:
+  browser:
+    required: false
+  chrome:
+    required: false
+  computer_use:
+    required: false
+
+voice:
+  provider: "edge-tts"
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: "+0%"
+  pitch: "+0Hz"
+  volume: "+0%"
+
+render:
+  fps: 24
+  burn_subtitles: true
+  auto_edit: true
+
+script:
+  narration: |
+    这是一个仓库讲解视频模板。
+    视频应该先说明仓库解决的问题，再展示 README、目录结构和核心入口。
+    接着用最小命令跑通一个示例，让观众看到从安装到结果的完整闭环。
+    最后总结适合的使用场景、注意事项和下一步学习路径。
+
+upload:
+  enabled: false
+  platform: "youtube"
+  confirmation: "required"

@@ -12,6 +12,7 @@ dependencies = [
   "moviepy",
   "auto-editor",
   "openai-whisper",
+  "playwright",
   "PyYAML",
 ]
 

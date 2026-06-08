@@ -1,120 +1,175 @@
 ---
 name: ai-video-maker
-description: Use when the user wants AI-assisted video creation for technical, product, tutorial, SOP, repository, API, bug reproduction, or release note videos. Covers brief alignment, planning, recording, narration, subtitles, editing, QA, packaging, and upload preparation.
+description: Use when the user wants AI-assisted video creation through a skills-first workflow for technical, product, tutorial, SOP, repository, API, bug reproduction, or release note videos. Orchestrates brief alignment, plan confirmation, recording, narration, subtitles, editing, QA, revision, packaging, and upload/publish gates.
 ---
 
-# AI Video Maker Skill
+# AI Video Maker Orchestrator
 
-## Core Principle
+## Core Positioning
 
-The user gives a video need. The assistant turns it into an aligned plan, asks for confirmation at the right gates, then uses the available tools to produce a video package.
+This is the user-facing orchestrator skill for AI Video Maker. It implements the `ai-video-orchestrator` role in this repository.
 
-Do not assume this skill is only for repository explainer videos. Repository explanation is one scenario. The broader target is structured demo and explanation videos.
+The user should describe the video they want. The assistant should use this skill to align the requirement, propose a plan, ask for gate confirmations, recommend and call the right sub-workflows, and produce a video package.
 
-## Workflow
+Do not present the CLI as the main user workflow. The repository harness and CLI are internal execution substrate for skills, debugging, and reproducible runs.
 
-1. Align the brief.
-2. Propose a video plan.
-3. Ask the user to confirm the plan.
-4. Produce detailed execution steps.
-5. Ask the user to confirm execution.
-6. Capture assets with available capabilities.
-7. Generate narration and subtitles.
-8. Render and auto-edit the video.
-9. Run QA.
-10. Prepare upload package.
-11. Ask for confirmation before upload or publish.
+## User-Facing Flow
 
-## Harness Commands
+1. Understand the user's video need.
+2. Tell the user the next recommended workflow is `video-brief`.
+3. Produce or refine a structured brief.
+4. Stop at the `brief` gate and ask for confirmation.
+5. Tell the user the next recommended workflow is `video-plan`.
+6. Produce storyboard, asset plan, capability plan, and detailed execution steps.
+7. Stop at the `plan` gate and ask for confirmation.
+8. Tell the user whether the next recommended workflow is `video-script`, `browser-capture`, `voice-subtitle`, or another workflow.
+9. If browser, Chrome, or desktop GUI actions are needed, explain the exact action and stop at the `execution` gate.
+10. Generate or capture visual assets.
+11. Generate narration and subtitles.
+12. Edit and render the video.
+13. Run QA and route revisions to the right workflow.
+14. Prepare the publishing package.
+15. Stop at `upload` and `publish` gates before any platform-side action.
 
-Prefer the repository harness when working inside this project.
+At every stage, say clearly:
 
-Create a pipeline run:
+- What was completed.
+- What the user should review.
+- Which gate, if any, is required.
+- Which skill should be called next if the user approves.
+- Which skill should be called for revision if the user rejects the result.
 
-```bash
-ai-video-maker run --pipeline pipeline.example.yml --run-id <run_id> --overwrite
-```
+## Sub-Workflow Map
 
-Approve the brief after user alignment:
+The first child skills are already defined as separate P0 skills. Later workflows may still execute as sections inside this skill until they are split out.
 
-```bash
-ai-video-maker approve --run runs/<run_id> --gate brief --summary "<summary>"
-```
+| Workflow | Purpose | Expected Outputs | Gate |
+|---|---|---|---|
+| `video-brief` | Align requirement, audience, platform, duration, style, constraints | `brief.yml` | `brief` |
+| `video-plan` | Build storyboard, asset plan, capability plan, production steps | `plan/storyboard.yml`, `plan/asset_plan.yml`, `plan/capability_plan.yml` | `plan` |
+| `video-script` | Write narration, subtitles draft, screen action script | `script/narration.zh.txt`, `script/screen_actions.md` | plan revision if needed |
+| `browser-capture` | Inspect, screenshot, or record browser/Chrome/desktop interactions | `assets/browser/*`, `qa/browser_preflight.*` | `execution` |
+| `voice-subtitle` | Generate AI voice and subtitles | `audio/narration.mp3`, `subtitles/captions.srt` | none unless revision |
+| `edit-render` | Compose, edit, and render the final horizontal video | `render/final_16x9.mp4` | none unless revision |
+| `qa-revision` | Verify video quality and route fixes | `qa/report.md` | revision confirmation if needed |
+| `publish-package` | Prepare video, title, description, tags, upload checklist | `package/*` | `upload`, `publish` |
 
-Continue until the next gate:
+## Review Model
 
-```bash
-ai-video-maker run --run runs/<run_id>
-```
+There are two review types:
 
-Approve the plan before production:
+| Review Type | Meaning | Examples |
+|---|---|---|
+| Hard gate | Must wait for explicit user confirmation before continuing | `brief`, `plan`, `execution`, `upload`, `publish` |
+| Soft review | Show results and next recommendation; user may continue or request revision | script, voice, subtitles, render, QA, package metadata |
 
-```bash
-ai-video-maker approve --run runs/<run_id> --gate plan --summary "<summary>"
-```
+Do not ask for hard-gate confirmation at every tiny step. Use hard gates only for product direction, execution risk, account-side effects, upload, and publish.
 
-Inspect state and artifact count:
+## Gate Policy
 
-```bash
-ai-video-maker status --run runs/<run_id>
-```
+Never skip these confirmations:
 
-Validate a pipeline before creating a run:
+- `brief`: video goal, audience, platform, style, duration, constraints.
+- `plan`: chapter structure, visual plan, narration direction, execution steps.
+- `execution`: browser, Chrome login state, desktop GUI, local file picker, screen recording, or account-affecting preparation.
+- `upload`: uploading files to a third-party platform.
+- `publish`: making the video public, unlisted, scheduled, or otherwise published.
 
-```bash
-ai-video-maker validate --pipeline pipeline.example.yml
-```
-
-Inspect GUI capability dry-run:
-
-```bash
-ai-video-maker capabilities --pipeline pipeline.example.yml
-```
-
-Inspect local browser demo preflight:
-
-```bash
-ai-video-maker capabilities --pipeline templates/pipelines/browser_local_demo.yml
-```
-
-P1 pipeline behavior:
-
-```text
-pipeline.yml -> brief.yml -> wait for brief approval
-brief approved -> storyboard / asset_plan / capability_plan / narration -> wait for plan approval
-plan approved -> voice / subtitles / render / QA / package
-GUI capability required -> wait for execution approval
-upload / publish -> never automatic
-```
+Ask close to the side-effect. Prepare safe files and metadata first, then ask before the account or external-platform action.
 
 ## Capability Policy
 
-GUI tools are optional capability adapters, not hard dependencies.
+Prefer scripted or API-based execution when it can complete the task reproducibly.
 
-Use CLI/API/scripted rendering first when it can complete the task. Use GUI tools only when the task requires real UI interaction.
+Use GUI capabilities only when the workflow needs real UI interaction:
 
 | Capability | Use When | Avoid When |
 |---|---|---|
-| `$browser` | Local web app demos, regular websites, screenshots, browser recording, DOM verification | Existing user login state is required |
-| `$chrome` | Existing Chrome login state is required, especially YouTube Studio or authenticated dashboards | Cookies, passwords, local storage, or session inspection would be needed |
-| `$computer-use` | Desktop GUI apps, OBS, editors, file pickers, native dialogs | A CLI/API can do the task safely |
+| `$browser` | Local web demos, public webpages, DOM checks, screenshots, browser recording | Existing user login state is required |
+| `$chrome` | Existing Chrome login state is required, such as YouTube Studio or authenticated dashboards | Cookies, passwords, or session secrets would need inspection |
+| `$computer-use` | Desktop apps, OBS, editors, file pickers, native dialogs | CLI/API/scripted execution is enough |
 
-## Required Confirmation Gates
+## Handoff Contract
 
-Ask for confirmation before:
+After each workflow, return or persist a handoff block. The orchestrator uses it to decide what to show the user and which skill to call next.
 
-- Uploading files to a third-party platform.
-- Publishing a video.
-- Setting a video public/unlisted/private on a platform.
-- Using an authenticated Chrome session for account-affecting actions.
-- Creating OAuth/API credentials.
-- Installing or running newly acquired GUI software.
-- Deleting or overwriting nontrivial local/cloud files.
-- Submitting forms, comments, messages, or any public account action.
+```yaml
+skill: video-plan
+run_id: demo
+status: ready_for_gate
+outputs:
+  - plan/storyboard.yml
+  - plan/asset_plan.yml
+  - plan/capability_plan.yml
+review_checklist:
+  - Confirm chapter structure
+  - Confirm narration direction
+  - Confirm browser capture scope
+risks:
+  - browser capture requires execution approval
+next_gate: plan
+next_skill_suggestion: video-script
+revision_skill_suggestion: video-plan
+user_action_required: true
+user_message: "Please review the storyboard, asset plan, and execution steps. If approved, the next recommended skill is video-script."
+```
 
-Do not ask for confirmation too early. Prepare the files and metadata first, then ask right before the side-effect action.
+Required fields:
 
-## Outputs
+- `skill`
+- `run_id`
+- `status`
+- `outputs`
+- `review_checklist`
+- `risks`
+- `next_gate` when confirmation is needed
+- `next_skill_suggestion` when the next workflow is clear
+- `revision_skill_suggestion` when the likely revision target is clear
+- `user_action_required`
+- `user_message`
+
+Supported `status` values:
+
+- `ready_for_gate`
+- `ready_for_review`
+- `done`
+- `needs_revision`
+- `blocked`
+
+## Orchestrator Decision Rules
+
+Use the handoff block this way:
+
+| Status | Action |
+|---|---|
+| `ready_for_gate` | Show outputs, risks, review checklist, and ask for explicit confirmation |
+| `ready_for_review` | Show outputs and checklist; allow the user to continue or request revision |
+| `done` | Summarize completed outputs and recommend `next_skill_suggestion` |
+| `needs_revision` | Explain what failed and route to `revision_skill_suggestion` |
+| `blocked` | Ask only for the missing information needed to unblock |
+
+If the user says "continue" after a soft review, proceed to `next_skill_suggestion`.
+
+If the user asks for changes, route to `revision_skill_suggestion` or the most relevant earlier workflow.
+
+## Internal Harness Use
+
+When working inside this repository, use the harness to keep state reproducible.
+
+Typical internal actions:
+
+```bash
+ai-video-maker validate --pipeline pipeline.example.yml
+ai-video-maker run --pipeline pipeline.example.yml --run-id <run_id> --overwrite
+ai-video-maker approve --run runs/<run_id> --gate brief --summary "<summary>"
+ai-video-maker run --run runs/<run_id>
+ai-video-maker approve --run runs/<run_id> --gate plan --summary "<summary>"
+ai-video-maker status --run runs/<run_id>
+```
+
+These commands are for the assistant or developer. Do not make the user manually run them unless the user is debugging or explicitly asks for CLI usage.
+
+## Output Shape
 
 A complete run should produce:
 
@@ -123,8 +178,10 @@ runs/<run_id>/
   brief.yml
   approvals.yml
   state.json
+  artifacts.yml
   plan/storyboard.yml
   plan/asset_plan.yml
+  plan/capability_plan.yml
   script/narration.zh.txt
   subtitles/captions.srt
   audio/narration.mp3
@@ -134,6 +191,7 @@ runs/<run_id>/
   package/title.txt
   package/description.md
   package/tags.txt
+  package/upload_checklist.md
 ```
 
 ## Quality Bar
@@ -143,4 +201,4 @@ runs/<run_id>/
 - Commands and UI actions must be verified before recording.
 - Subtitles must not cover important UI.
 - Final video must contain both audio and video streams.
-- QA must include duration, codec, audio stream, and keyframe checks.
+- QA must include duration, resolution, codec, audio stream, subtitle readability, and keyframe checks.
