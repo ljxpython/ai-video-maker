@@ -72,6 +72,34 @@ cd "<project-root>"
 ".venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
 ```
 
+运行 P1 pipeline harness：
+
+```bash
+".venv/bin/ai-video-maker" run \
+  --pipeline "pipeline.example.yml" \
+  --run-id p1-self-intro \
+  --overwrite
+
+".venv/bin/ai-video-maker" approve \
+  --run "runs/p1-self-intro" \
+  --gate brief \
+  --summary "确认 brief"
+
+".venv/bin/ai-video-maker" run \
+  --run "runs/p1-self-intro"
+
+".venv/bin/ai-video-maker" approve \
+  --run "runs/p1-self-intro" \
+  --gate plan \
+  --summary "确认 storyboard、素材计划和旁白稿"
+
+".venv/bin/ai-video-maker" run \
+  --run "runs/p1-self-intro"
+
+".venv/bin/ai-video-maker" status \
+  --run "runs/p1-self-intro"
+```
+
 运行 P0 harness demo：
 
 ```bash
@@ -136,6 +164,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [Harness 工程搭建计划](./docs/Harness工程搭建计划.md)
 - [实操记录：AI Video Maker 自我介绍横屏 Demo](./docs/实操记录-AIVideoMaker自我介绍横屏Demo.md)
 - [实操记录：P0 Harness 自我介绍 Demo](./docs/实操记录-P0Harness自我介绍Demo.md)
+- [实操记录：P1 Pipeline Harness 自我介绍 Demo](./docs/实操记录-P1PipelineHarness自我介绍Demo.md)
 - [视频制作工具链调研与执行方案](./视频制作工具链调研与执行方案.md)
 - [方案 A 安装配置记录](./docs/方案A安装配置记录.md)
 - [AI Video Maker Skill](./skills/ai-video-maker/SKILL.md)
@@ -145,6 +174,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [x] 建立 `runs/<run_id>` 的 P0 工程 harness。
 - [x] 实现需求 brief、storyboard、artifact manifest。
 - [x] 实现 brief/plan/execution/upload/publish 分阶段确认记录。
+- [x] 实现 `pipeline.yml` 驱动的 P1 run/status 流程。
 - [ ] 支持仓库讲解、产品演示、SOP 教程三类模板。
 - [ ] 生成视频脚本、旁白稿和字幕。
 - [ ] 使用 `$browser` 录制网页 Demo。

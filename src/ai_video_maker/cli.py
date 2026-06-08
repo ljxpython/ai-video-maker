@@ -1,7 +1,9 @@
 import argparse
+import json
 from pathlib import Path
 
 from .context import create_run, load_run
+from .pipeline import advance_pipeline, initialize_pipeline_run, status_summary
 from .project import find_project_root
 from .stages import approve_gate, generate_voice, initialize_run_files, package, qa, render
 
@@ -16,8 +18,46 @@ def command_new(args: argparse.Namespace) -> None:
 def command_approve(args: argparse.Namespace) -> None:
     root = find_project_root()
     ctx = load_run(root, args.run)
-    approve_gate(ctx, args.gate)
+    approve_gate(ctx, args.gate, summary=args.summary)
     print(f"approved {args.gate}: {ctx.run_dir.relative_to(root)}")
+
+
+def command_run(args: argparse.Namespace) -> None:
+    root = find_project_root()
+    if args.pipeline:
+        pipeline_path = Path(args.pipeline)
+        if not pipeline_path.is_absolute():
+            pipeline_path = root / pipeline_path
+        ctx = create_run(root, run_id=args.run_id, overwrite=args.overwrite)
+        initialize_pipeline_run(ctx, pipeline_path)
+    else:
+        ctx = load_run(root, args.run)
+
+    result = advance_pipeline(ctx)
+    print(result["message"])
+    print(result["run"])
+    if result["next_action"]:
+        print(result["next_action"])
+
+
+def command_status(args: argparse.Namespace) -> None:
+    root = find_project_root()
+    ctx = load_run(root, args.run)
+    summary = status_summary(ctx)
+    if args.json:
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return
+
+    state = summary["state"]
+    print(f"run: {summary['run']}")
+    print(f"status: {state.get('status', '')}")
+    print(f"current_stage: {state.get('current_stage', '')}")
+    if state.get("next_action"):
+        print(f"next_action: {state['next_action']}")
+    print("approvals:")
+    for gate, status in summary["approvals"].items():
+        print(f"  {gate}: {status}")
+    print(f"artifacts: {summary['artifact_count']}")
 
 
 def command_voice(args: argparse.Namespace) -> None:
@@ -75,7 +115,21 @@ def build_parser() -> argparse.ArgumentParser:
     approve_parser = sub.add_parser("approve", help="record an approval gate")
     approve_parser.add_argument("--run", required=True)
     approve_parser.add_argument("--gate", required=True, choices=["brief", "plan", "execution", "upload", "publish"])
+    approve_parser.add_argument("--summary", default="approved")
     approve_parser.set_defaults(func=command_approve)
+
+    run_parser = sub.add_parser("run", help="create or continue a pipeline run")
+    run_target = run_parser.add_mutually_exclusive_group(required=True)
+    run_target.add_argument("--pipeline")
+    run_target.add_argument("--run")
+    run_parser.add_argument("--run-id")
+    run_parser.add_argument("--overwrite", action="store_true")
+    run_parser.set_defaults(func=command_run)
+
+    status_parser = sub.add_parser("status", help="show run state, approvals, and artifacts")
+    status_parser.add_argument("--run", required=True)
+    status_parser.add_argument("--json", action="store_true")
+    status_parser.set_defaults(func=command_status)
 
     voice_parser = sub.add_parser("voice", help="generate narration audio and subtitles")
     voice_parser.add_argument("--run", required=True)

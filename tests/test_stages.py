@@ -4,6 +4,7 @@ from pathlib import Path
 
 from ai_video_maker.context import create_run
 from ai_video_maker.io import read_yaml
+import ai_video_maker.stages as stages_module
 from ai_video_maker.stages import approve_gate, initialize_run_files
 
 
@@ -47,6 +48,92 @@ class StageTests(unittest.TestCase):
             self.assertEqual(approvals["plan"]["status"], "approved")
             self.assertEqual(approvals["plan"]["summary"], "unit approved")
             self.assertEqual(ctx.state()["status"], "plan_approved")
+
+    def test_generate_voice_uses_pipeline_voice_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ctx = create_run(root, run_id="voice-run")
+            ctx.path("script/narration.zh.txt").write_text("hello", encoding="utf-8")
+            ctx.path("pipeline.yml").write_text(
+                "\n".join(
+                    [
+                        "voice:",
+                        "  voice: zh-CN-YunxiNeural",
+                        "  rate: -10%",
+                        "  pitch: +2Hz",
+                        "  volume: +5%",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            calls = []
+            original = stages_module.run_command
+            stages_module.run_command = lambda args: fake_edge_tts(args, calls)
+            try:
+                stages_module.generate_voice(ctx)
+            finally:
+                stages_module.run_command = original
+
+            command = calls[0]
+            self.assertIn("zh-CN-YunxiNeural", command)
+            self.assertIn("-10%", command)
+            self.assertIn("+2Hz", command)
+            self.assertIn("+5%", command)
+            self.assertTrue(ctx.path("subtitles/captions.srt").exists())
+
+    def test_render_can_skip_auto_editor_from_pipeline_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ctx = create_run(root, run_id="render-run")
+            ctx.path("audio/narration.mp3").write_text("audio", encoding="utf-8")
+            ctx.path("subtitles/captions.srt").write_text("", encoding="utf-8")
+            ctx.path("pipeline.yml").write_text(
+                "\n".join(
+                    [
+                        "project:",
+                        "  name: Configured Demo",
+                        "video:",
+                        "  style: 测试风格",
+                        "render:",
+                        "  fps: 12",
+                        "  auto_edit: false",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            commands = []
+            render_calls = []
+            originals = (stages_module.render_video, stages_module.run_command)
+            stages_module.render_video = lambda **kwargs: fake_render_video(kwargs, render_calls)
+            stages_module.run_command = lambda args: commands.append(args)
+            try:
+                stages_module.render(ctx)
+            finally:
+                stages_module.render_video, stages_module.run_command = originals
+
+            self.assertEqual(commands, [])
+            self.assertEqual(render_calls[0]["title"], "Configured Demo")
+            self.assertEqual(render_calls[0]["fps"], 12)
+            self.assertTrue(ctx.path("render/final_16x9.mp4").exists())
+
+
+def fake_edge_tts(args, calls):
+    calls.append(args)
+    media = Path(args[args.index("--write-media") + 1])
+    subtitles = Path(args[args.index("--write-subtitles") + 1])
+    media.write_text("audio", encoding="utf-8")
+    subtitles.write_text("WEBVTT\n", encoding="utf-8")
+
+
+def fake_render_video(kwargs, calls):
+    calls.append(kwargs)
+    output = kwargs["output_path"]
+    output.write_text("video", encoding="utf-8")
+    return output
 
 
 if __name__ == "__main__":

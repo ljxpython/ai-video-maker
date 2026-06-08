@@ -25,6 +25,50 @@ Do not assume this skill is only for repository explainer videos. Repository exp
 10. Prepare upload package.
 11. Ask for confirmation before upload or publish.
 
+## Harness Commands
+
+Prefer the repository harness when working inside this project.
+
+Create a pipeline run:
+
+```bash
+ai-video-maker run --pipeline pipeline.example.yml --run-id <run_id> --overwrite
+```
+
+Approve the brief after user alignment:
+
+```bash
+ai-video-maker approve --run runs/<run_id> --gate brief --summary "<summary>"
+```
+
+Continue until the next gate:
+
+```bash
+ai-video-maker run --run runs/<run_id>
+```
+
+Approve the plan before production:
+
+```bash
+ai-video-maker approve --run runs/<run_id> --gate plan --summary "<summary>"
+```
+
+Inspect state and artifact count:
+
+```bash
+ai-video-maker status --run runs/<run_id>
+```
+
+P1 pipeline behavior:
+
+```text
+pipeline.yml -> brief.yml -> wait for brief approval
+brief approved -> storyboard / asset_plan / narration -> wait for plan approval
+plan approved -> voice / subtitles / render / QA / package
+GUI capability required -> wait for execution approval
+upload / publish -> never automatic
+```
+
 ## Capability Policy
 
 GUI tools are optional capability adapters, not hard dependencies.
@@ -82,4 +126,3 @@ runs/<run_id>/
 - Subtitles must not cover important UI.
 - Final video must contain both audio and video streams.
 - QA must include duration, codec, audio stream, and keyframe checks.
-

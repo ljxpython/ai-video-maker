@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -68,6 +69,8 @@ def create_run(project_root: Path, run_id: str | None = None, overwrite: bool = 
     run_dir = project_root / "runs" / (run_id or default_run_id())
     if run_dir.exists() and not overwrite:
         raise FileExistsError(f"run already exists: {run_dir}")
+    if run_dir.exists() and overwrite:
+        shutil.rmtree(run_dir)
 
     for item in RUN_DIRS:
         (run_dir / item).mkdir(parents=True, exist_ok=True)

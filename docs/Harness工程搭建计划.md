@@ -96,6 +96,41 @@ created_at: ""
 
 ## 4. CLI 阶段
 
+### 4.0 P1 Pipeline 入口
+
+P1 开始支持用 `pipeline.yml` 驱动 run。
+
+创建 pipeline run：
+
+```bash
+ai-video-maker run \
+  --pipeline pipeline.example.yml \
+  --run-id p1-self-intro \
+  --overwrite
+```
+
+查看状态：
+
+```bash
+ai-video-maker status --run runs/p1-self-intro
+```
+
+继续推进：
+
+```bash
+ai-video-maker run --run runs/p1-self-intro
+```
+
+当前推进规则：
+
+```text
+pipeline.yml -> brief.yml -> 等待 brief 确认
+brief approved -> storyboard/asset_plan/narration -> 等待 plan 确认
+plan approved -> voice/render/qa/package
+GUI capability required -> 等待 execution 确认
+upload/publish -> P1 不自动执行
+```
+
 ### 4.1 初始化任务
 
 ```bash
@@ -259,4 +294,3 @@ P0 测试只测稳定逻辑：
 7. 可以生成 package/ 上传包。
 8. 不依赖 GUI 工具也能完成 smoke run。
 ```
-

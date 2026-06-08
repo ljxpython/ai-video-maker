@@ -37,6 +37,17 @@ class ContextAndArtifactTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 create_run(root, run_id="unit-run")
 
+    def test_create_run_overwrite_removes_stale_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ctx = create_run(root, run_id="unit-run")
+            stale = ctx.path("render/final_16x9.mp4")
+            stale.write_text("old video", encoding="utf-8")
+
+            create_run(root, run_id="unit-run", overwrite=True)
+
+            self.assertFalse(stale.exists())
+
     def test_load_run_and_record_artifact(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -27,6 +27,11 @@ def run_command(args: list[str]) -> None:
     subprocess.run(args, check=True)
 
 
+def pipeline_config(ctx: RunContext) -> dict:
+    path = ctx.path("pipeline.yml")
+    return read_yaml(path) if path.exists() else {}
+
+
 def initialize_run_files(ctx: RunContext, template: str = "general_demo") -> None:
     project_root = ctx.project_root
     brief_template = read_yaml(project_root / "templates" / "briefs" / f"{template}.yml")
@@ -69,26 +74,32 @@ def approve_gate(ctx: RunContext, gate: str, summary: str = "approved for P0 har
 
 
 def generate_voice(ctx: RunContext) -> None:
+    pipeline = pipeline_config(ctx)
+    voice_config = pipeline.get("voice", {})
     narration = ctx.path("script/narration.zh.txt")
     audio = ctx.path("audio/narration.mp3")
     subtitles_vtt = ctx.path("subtitles/captions.vtt")
     subtitles_srt = ctx.path("subtitles/captions.srt")
 
-    run_command(
-        [
-            bin_path("edge-tts"),
-            "--file",
-            str(narration),
-            "--voice",
-            "zh-CN-XiaoxiaoNeural",
-            "--rate",
-            "+0%",
-            "--write-media",
-            str(audio),
-            "--write-subtitles",
-            str(subtitles_vtt),
-        ]
-    )
+    command = [
+        bin_path("edge-tts"),
+        "--file",
+        str(narration),
+        "--voice",
+        str(voice_config.get("voice", "zh-CN-XiaoxiaoNeural")),
+        "--rate",
+        str(voice_config.get("rate", "+0%")),
+        "--write-media",
+        str(audio),
+        "--write-subtitles",
+        str(subtitles_vtt),
+    ]
+    for key, option in [("pitch", "--pitch"), ("volume", "--volume")]:
+        value = voice_config.get(key)
+        if value:
+            command.extend([option, str(value)])
+
+    run_command(command)
     shutil.copyfile(subtitles_vtt, subtitles_srt)
     ctx.update_state("voice_ready", "voice")
     record_artifact(ctx, "voice", "audio", audio, "voice")
@@ -96,6 +107,10 @@ def generate_voice(ctx: RunContext) -> None:
 
 
 def render(ctx: RunContext) -> None:
+    pipeline = pipeline_config(ctx)
+    project = pipeline.get("project", {})
+    video_config = pipeline.get("video", {})
+    render_config = pipeline.get("render", {})
     draft = ctx.path("render/draft.mp4")
     final_video = ctx.path("render/final_16x9.mp4")
 
@@ -103,21 +118,24 @@ def render(ctx: RunContext) -> None:
         audio_path=ctx.path("audio/narration.mp3"),
         subtitles_path=ctx.path("subtitles/captions.srt"),
         output_path=draft,
-        title="AI Video Maker",
-        subtitle="需求对齐 -> 配音字幕 -> 横屏成片",
-        footer="ai-video-maker p0 harness",
-        fps=24,
+        title=str(project.get("name", "AI Video Maker")),
+        subtitle=str(video_config.get("style", "需求对齐 -> 配音字幕 -> 横屏成片")),
+        footer="ai-video-maker pipeline harness" if pipeline else "ai-video-maker p0 harness",
+        fps=int(render_config.get("fps", 24)),
     )
 
-    run_command(
-        [
-            bin_path("auto-editor"),
-            str(draft),
-            "-o",
-            str(final_video),
-            "--no-open",
-        ]
-    )
+    if render_config.get("auto_edit", True):
+        run_command(
+            [
+                bin_path("auto-editor"),
+                str(draft),
+                "-o",
+                str(final_video),
+                "--no-open",
+            ]
+        )
+    else:
+        shutil.copyfile(draft, final_video)
     ctx.update_state("render_ready", "render")
     record_artifact(ctx, "draft_video", "video", draft, "render")
     record_artifact(ctx, "final_video", "video", final_video, "render")

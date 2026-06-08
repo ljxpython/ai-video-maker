@@ -1,18 +1,18 @@
 project:
-  name: "ai-video-demo"
+  name: "AI Video Maker"
   type: "general_demo"
 
 source:
   type: "user_request"
-  value: "Explain and demonstrate a workflow requested by the user."
+  value: "介绍 AI Video Maker 项目自己：说明它如何把一个视频需求拆解成 brief、storyboard、配音、字幕、剪辑、QA 和发布包。"
 
 video:
   platform: "youtube"
   aspect_ratio: "16:9"
   resolution: "1920x1080"
-  target_duration: 180
+  target_duration: 60
   language: "zh-CN"
-  style: "clear technical narration with burned subtitles"
+  style: "横屏技术讲解，AI 配音，字幕清晰"
 
 capabilities:
   browser:
@@ -33,6 +33,15 @@ render:
   fps: 24
   burn_subtitles: true
   auto_edit: true
+
+script:
+  narration: |
+    这是 AI Video Maker 的 Pipeline Harness 演示。
+    这个项目的定位很明确：用户先说一个视频需求，AI 负责理解目标、拆解方案，并把过程沉淀成可追踪的 run 目录。
+    在 P1 版本里，pipeline.yml 会生成 brief，等待用户确认后再生成 storyboard、素材计划和旁白稿。
+    只有方案被确认后，系统才会继续生成 AI 配音、字幕、横屏视频、质检报告和 YouTube 发布包。
+    浏览器、Chrome 登录态和桌面操作不会变成核心依赖，它们会作为能力适配器，在需要真实网页演示或上传时再接入。
+    这条链路的目标不是做一次性的剪辑脚本，而是把 AI 视频制作变成可复用、可审计、可迭代的工程流程。
 
 upload:
   enabled: false
