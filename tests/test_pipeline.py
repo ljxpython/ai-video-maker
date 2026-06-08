@@ -5,7 +5,7 @@ from pathlib import Path
 import ai_video_maker.pipeline as pipeline_module
 from ai_video_maker.context import create_run
 from ai_video_maker.io import read_yaml
-from ai_video_maker.pipeline import advance_pipeline, initialize_pipeline_run, status_summary
+from ai_video_maker.pipeline import advance_pipeline, initialize_pipeline_run, status_summary, validate_pipeline
 from ai_video_maker.stages import approve_gate
 
 
@@ -72,6 +72,50 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(summary["run"], "runs/pipeline-run")
             self.assertEqual(summary["approvals"]["brief"], "pending")
             self.assertEqual(summary["artifact_count"], 2)
+
+    def test_validate_pipeline_accepts_valid_config(self):
+        pipeline = {
+            "project": {"name": "AI Video Maker", "type": "general_demo"},
+            "source": {"type": "user_request", "value": "介绍项目"},
+            "video": {
+                "platform": "youtube",
+                "aspect_ratio": "16:9",
+                "resolution": "1920x1080",
+                "target_duration": 60,
+                "language": "zh-CN",
+            },
+            "voice": {"provider": "edge-tts", "voice": "zh-CN-XiaoxiaoNeural"},
+            "render": {"fps": 24, "burn_subtitles": True, "auto_edit": True},
+            "capabilities": {"browser": {"required": False}},
+            "upload": {"enabled": False, "confirmation": "required"},
+        }
+
+        self.assertEqual(validate_pipeline(pipeline), [])
+
+    def test_validate_pipeline_reports_invalid_config(self):
+        pipeline = {
+            "project": {"name": "", "type": "general_demo"},
+            "source": {"type": "user_request"},
+            "video": {
+                "platform": "youtube",
+                "aspect_ratio": "16:9",
+                "resolution": "1920x1080",
+                "target_duration": 0,
+                "language": "",
+            },
+            "render": {"fps": "24", "burn_subtitles": True, "auto_edit": "yes"},
+            "upload": {"enabled": True, "confirmation": "optional"},
+        }
+
+        errors = validate_pipeline(pipeline)
+
+        self.assertIn("project.name must be a non-empty string", errors)
+        self.assertIn("source.value must be a non-empty string", errors)
+        self.assertIn("video.target_duration must be a positive integer", errors)
+        self.assertIn("video.language must be a non-empty string", errors)
+        self.assertIn("render.fps must be a positive integer", errors)
+        self.assertIn("render.auto_edit must be true or false", errors)
+        self.assertIn("upload.confirmation must be required when upload.enabled is true", errors)
 
     def test_completed_pipeline_clears_next_action(self):
         with tempfile.TemporaryDirectory() as tmp:

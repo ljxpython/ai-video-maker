@@ -59,6 +59,12 @@ Inspect state and artifact count:
 ai-video-maker status --run runs/<run_id>
 ```
 
+Validate a pipeline before creating a run:
+
+```bash
+ai-video-maker validate --pipeline pipeline.example.yml
+```
+
 P1 pipeline behavior:
 
 ```text

@@ -30,6 +30,12 @@ class CliTests(unittest.TestCase):
         self.assertEqual(args.run, "runs/demo")
         self.assertTrue(args.json)
 
+    def test_parser_accepts_validate(self):
+        parser = build_parser()
+        args = parser.parse_args(["validate", "--pipeline", "pipeline.example.yml", "--json"])
+        self.assertEqual(args.pipeline, "pipeline.example.yml")
+        self.assertTrue(args.json)
+
 
 if __name__ == "__main__":
     unittest.main()

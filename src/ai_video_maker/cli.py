@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 
 from .context import create_run, load_run
-from .pipeline import advance_pipeline, initialize_pipeline_run, status_summary
+from .io import read_yaml
+from .pipeline import advance_pipeline, initialize_pipeline_run, status_summary, validate_pipeline
 from .project import find_project_root
 from .stages import approve_gate, generate_voice, initialize_run_files, package, qa, render
 
@@ -58,6 +59,27 @@ def command_status(args: argparse.Namespace) -> None:
     for gate, status in summary["approvals"].items():
         print(f"  {gate}: {status}")
     print(f"artifacts: {summary['artifact_count']}")
+
+
+def command_validate(args: argparse.Namespace) -> None:
+    root = find_project_root()
+    pipeline_path = Path(args.pipeline)
+    if not pipeline_path.is_absolute():
+        pipeline_path = root / pipeline_path
+
+    pipeline = read_yaml(pipeline_path)
+    errors = ["pipeline is empty"] if not pipeline else validate_pipeline(pipeline)
+    if args.json:
+        print(json.dumps({"pipeline": str(Path(args.pipeline)), "valid": not errors, "errors": errors}, ensure_ascii=False, indent=2))
+    elif errors:
+        print("pipeline invalid")
+        for error in errors:
+            print(f"- {error}")
+    else:
+        print("pipeline valid")
+
+    if errors:
+        raise SystemExit(1)
 
 
 def command_voice(args: argparse.Namespace) -> None:
@@ -130,6 +152,11 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser.add_argument("--run", required=True)
     status_parser.add_argument("--json", action="store_true")
     status_parser.set_defaults(func=command_status)
+
+    validate_parser = sub.add_parser("validate", help="validate a pipeline file")
+    validate_parser.add_argument("--pipeline", required=True)
+    validate_parser.add_argument("--json", action="store_true")
+    validate_parser.set_defaults(func=command_validate)
 
     voice_parser = sub.add_parser("voice", help="generate narration audio and subtitles")
     voice_parser.add_argument("--run", required=True)

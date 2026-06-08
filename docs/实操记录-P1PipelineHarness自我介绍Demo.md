@@ -199,6 +199,18 @@ docs/assets/p1-pipeline-frame-6s.png
 
 ## 7. 测试验证
 
+配置校验：
+
+```bash
+.venv/bin/ai-video-maker validate --pipeline pipeline.example.yml
+```
+
+结果：
+
+```text
+pipeline valid
+```
+
 本次新增并运行单元测试：
 
 ```bash
@@ -208,16 +220,18 @@ docs/assets/p1-pipeline-frame-6s.png
 结果：
 
 ```text
-Ran 20 tests
+Ran 23 tests
 OK
 ```
 
 新增测试覆盖：
 
 - CLI `run` / `status` 参数解析。
+- CLI `validate` 参数解析。
 - pipeline 初始化只生成 brief。
 - brief gate 通过后才生成 plan。
 - GUI capability required 时必须等待 execution gate。
+- pipeline schema 校验。
 - pipeline 完成后清理 stale `next_action`。
 
 ## 8. 当前结论
@@ -235,7 +249,7 @@ P1 pipeline harness 已经完成最小闭环：
 
 下一步建议：
 
-1. 把 `pipeline.example.yml` schema 固化成文档。
-2. 增加 `validate` 命令，提前检查 pipeline 配置。
-3. 抽象 capability adapter，为 `$browser` 录制真实 Web Demo 做准备。
-4. 增加仓库讲解、产品演示、SOP 教程三个模板。
+1. 抽象 capability adapter，为 `$browser` 录制真实 Web Demo 做准备。
+2. 增加仓库讲解、产品演示、SOP 教程三个模板。
+3. 增加 `pipeline.yml` 到 run 的更细粒度 resume 策略。
+4. 为 YouTube 上传包增加 metadata QA。

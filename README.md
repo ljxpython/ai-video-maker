@@ -70,6 +70,7 @@ cd "<project-root>"
 ".venv/bin/auto-editor" --version
 ".venv/bin/whisper" --help
 ".venv/bin/python" -c "import moviepy, torch, whisper, edge_tts; print('ok')"
+".venv/bin/ai-video-maker" validate --pipeline "pipeline.example.yml"
 ```
 
 运行 P1 pipeline harness：
@@ -162,6 +163,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [需求对齐到视频发布工作流](./docs/需求对齐到视频发布工作流.md)
 - [能力适配器与 GUI 工具策略](./docs/能力适配器与GUI工具策略.md)
 - [Harness 工程搭建计划](./docs/Harness工程搭建计划.md)
+- [Pipeline 配置 Schema](./docs/Pipeline配置Schema.md)
 - [实操记录：AI Video Maker 自我介绍横屏 Demo](./docs/实操记录-AIVideoMaker自我介绍横屏Demo.md)
 - [实操记录：P0 Harness 自我介绍 Demo](./docs/实操记录-P0Harness自我介绍Demo.md)
 - [实操记录：P1 Pipeline Harness 自我介绍 Demo](./docs/实操记录-P1PipelineHarness自我介绍Demo.md)
@@ -175,6 +177,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [x] 实现需求 brief、storyboard、artifact manifest。
 - [x] 实现 brief/plan/execution/upload/publish 分阶段确认记录。
 - [x] 实现 `pipeline.yml` 驱动的 P1 run/status 流程。
+- [x] 实现 `pipeline.yml` validate 命令和 schema 文档。
 - [ ] 支持仓库讲解、产品演示、SOP 教程三类模板。
 - [ ] 生成视频脚本、旁白稿和字幕。
 - [ ] 使用 `$browser` 录制网页 Demo。

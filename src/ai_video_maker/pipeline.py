@@ -16,13 +16,76 @@ def load_pipeline(path: Path) -> dict[str, Any]:
     data = read_yaml(path)
     if not data:
         raise ValueError(f"pipeline is empty: {path}")
-    if not isinstance(data.get("project"), dict):
-        raise ValueError("pipeline.project is required")
-    if not isinstance(data.get("source"), dict):
-        raise ValueError("pipeline.source is required")
-    if not isinstance(data.get("video"), dict):
-        raise ValueError("pipeline.video is required")
+    errors = validate_pipeline(data)
+    required_errors = [item for item in errors if item.endswith("is required")]
+    if required_errors:
+        raise ValueError(required_errors[0])
     return data
+
+
+def validate_pipeline(pipeline: dict[str, Any]) -> list[str]:
+    errors = []
+    _require_mapping(errors, pipeline, "project")
+    _require_mapping(errors, pipeline, "source")
+    _require_mapping(errors, pipeline, "video")
+
+    project = pipeline.get("project", {})
+    source = pipeline.get("source", {})
+    video = pipeline.get("video", {})
+    voice = pipeline.get("voice", {})
+    render_config = pipeline.get("render", {})
+    upload = pipeline.get("upload", {})
+
+    if isinstance(project, dict):
+        _require_text(errors, project, "project.name")
+        _require_text(errors, project, "project.type")
+    if isinstance(source, dict):
+        _require_text(errors, source, "source.type")
+        _require_text(errors, source, "source.value")
+    if isinstance(video, dict):
+        _require_text(errors, video, "video.platform")
+        _require_text(errors, video, "video.aspect_ratio")
+        _require_text(errors, video, "video.resolution")
+        _require_positive_int(errors, video, "video.target_duration")
+        _require_text(errors, video, "video.language")
+
+    if "voice" in pipeline:
+        if not isinstance(voice, dict):
+            errors.append("voice must be a mapping")
+        else:
+            _require_text(errors, voice, "voice.provider")
+            _require_text(errors, voice, "voice.voice")
+
+    if "render" in pipeline:
+        if not isinstance(render_config, dict):
+            errors.append("render must be a mapping")
+        else:
+            _require_positive_int(errors, render_config, "render.fps")
+            _require_bool(errors, render_config, "render.burn_subtitles")
+            _require_bool(errors, render_config, "render.auto_edit")
+
+    if "upload" in pipeline:
+        if not isinstance(upload, dict):
+            errors.append("upload must be a mapping")
+        else:
+            _require_bool(errors, upload, "upload.enabled")
+            if upload.get("enabled") is True and upload.get("confirmation") != "required":
+                errors.append("upload.confirmation must be required when upload.enabled is true")
+
+    capabilities = pipeline.get("capabilities", {})
+    if capabilities and not isinstance(capabilities, dict):
+        errors.append("capabilities must be a mapping")
+    elif isinstance(capabilities, dict):
+        for name in GUI_CAPABILITIES:
+            config = capabilities.get(name)
+            if config is None:
+                continue
+            if not isinstance(config, dict):
+                errors.append(f"capabilities.{name} must be a mapping")
+                continue
+            _require_bool(errors, config, f"capabilities.{name}.required")
+
+    return errors
 
 
 def approval_status(ctx: RunContext, gate: str) -> str:
@@ -215,3 +278,30 @@ def _result(ctx: RunContext, message: str) -> dict[str, str]:
         "message": message,
         "next_action": str(state.get("next_action", "")),
     }
+
+
+def _require_mapping(errors: list[str], data: dict[str, Any], key: str) -> None:
+    value = data.get(key)
+    if not isinstance(value, dict):
+        errors.append(f"{key} is required")
+
+
+def _require_text(errors: list[str], data: dict[str, Any], dotted_key: str) -> None:
+    key = dotted_key.split(".")[-1]
+    value = data.get(key)
+    if not isinstance(value, str) or not value.strip():
+        errors.append(f"{dotted_key} must be a non-empty string")
+
+
+def _require_positive_int(errors: list[str], data: dict[str, Any], dotted_key: str) -> None:
+    key = dotted_key.split(".")[-1]
+    value = data.get(key)
+    if not isinstance(value, int) or value <= 0:
+        errors.append(f"{dotted_key} must be a positive integer")
+
+
+def _require_bool(errors: list[str], data: dict[str, Any], dotted_key: str) -> None:
+    key = dotted_key.split(".")[-1]
+    value = data.get(key)
+    if not isinstance(value, bool):
+        errors.append(f"{dotted_key} must be true or false")

@@ -115,6 +115,12 @@ ai-video-maker run \
 ai-video-maker status --run runs/p1-self-intro
 ```
 
+校验配置：
+
+```bash
+ai-video-maker validate --pipeline pipeline.example.yml
+```
+
 继续推进：
 
 ```bash
