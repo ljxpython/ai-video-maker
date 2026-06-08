@@ -98,6 +98,17 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(args.run, "runs/demo")
 
+    def test_parser_accepts_new_workflow_commands(self):
+        parser = build_parser()
+
+        self.assertEqual(parser.parse_args(["next", "--run", "runs/demo"]).run, "runs/demo")
+        self.assertEqual(parser.parse_args(["terminal-capture", "--run", "runs/demo"]).run, "runs/demo")
+        self.assertEqual(parser.parse_args(["revise", "--run", "runs/demo", "--issue", "video_file"]).issue, "video_file")
+        self.assertEqual(parser.parse_args(["chrome-capture", "--run", "runs/demo"]).run, "runs/demo")
+        self.assertEqual(parser.parse_args(["desktop-capture", "--run", "runs/demo"]).run, "runs/demo")
+        self.assertTrue(parser.parse_args(["youtube-upload", "--run", "runs/demo", "--dry-run"]).dry_run)
+        self.assertEqual(parser.parse_args(["skills", "validate"]).skills_command, "validate")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -18,6 +18,20 @@
 - [x] Stage 6：更新 README、使用指南、架构文档和实操记录。
 - [x] Stage 7：跑完整测试、模板校验、隐私扫描。
 
+## 后续开发路线
+
+详细设计见：[AI Video Maker 开发规划：P1 到 P9](./开发规划-P1到P9.md)
+
+- [x] P1：实现 Orchestrator next 状态机，让用户说“继续/确认/返修”后自动判断下一步 skill。
+- [x] P2：增强 `browser-capture`，支持结构化网页操作台本和逐步截图/录制。
+- [x] P3：实现 QA 返修闭环，生成 `issues.yml` 和 revision 记录，并支持局部重跑计划。
+- [x] P4：增强发布包，生成封面图、章节、标题候选和 metadata QA。
+- [x] P5：支持多格式渲染，输出横屏 YouTube 和竖屏 Shorts/抖音版本。
+- [x] P6：新增 `terminal-capture`，支持终端运行、测试过程文本卡片化。
+- [x] P7：新增 Chrome / computer-use 能力适配器，处理登录态网页和桌面 GUI 的计划与结果记录。
+- [x] P8：在 `upload` / `publish` gate 后支持 YouTube dry-run、上传计划和 gated blocked 执行入口。
+- [x] P9：补齐 skill 安装与分发形态，让外部用户更容易使用。
+
 ## Stage 1：edit-render
 
 目标：

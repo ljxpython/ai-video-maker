@@ -1,0 +1,18 @@
+id: shorts_9x16
+platform: shorts
+aspect_ratio: "9:16"
+resolution:
+  width: 1080
+  height: 1920
+fps: 24
+subtitle:
+  position: lower_middle
+  max_width_ratio: 0.86
+  bottom_margin: 260
+safe_area:
+  top: 180
+  bottom: 320
+  left: 72
+  right: 72
+output: render/final_9x16.mp4
+package_dir: package/shorts

@@ -1,0 +1,18 @@
+id: youtube_16x9
+platform: youtube
+aspect_ratio: "16:9"
+resolution:
+  width: 1920
+  height: 1080
+fps: 24
+subtitle:
+  position: bottom
+  max_width_ratio: 0.82
+  bottom_margin: 72
+safe_area:
+  top: 64
+  bottom: 120
+  left: 80
+  right: 80
+output: render/final_16x9.mp4
+package_dir: package/youtube

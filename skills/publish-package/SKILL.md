@@ -7,7 +7,7 @@ description: Use when AI Video Maker needs to prepare a YouTube-ready publishing
 
 ## Purpose
 
-Prepare local publishing files after `qa-revision` passes.
+Prepare local publishing files after `qa-revision` passes, including metadata, thumbnail, chapters, and upload checklist.
 
 This workflow does not upload, publish, schedule, log in, open YouTube Studio, or touch an external account.
 
@@ -21,7 +21,7 @@ This workflow does not upload, publish, schedule, log in, open YouTube Studio, o
 
 1. Confirm `qa-revision` handoff exists and passed.
 2. Copy final video into `package/video.mp4`.
-3. Generate title, description, tags, and upload checklist.
+3. Generate title, title options, description, chapters, tags, thumbnail, metadata QA, and upload checklist.
 4. Write `package/handoff.publish-package.yml`.
 5. Stop at the `upload` gate.
 
@@ -29,10 +29,15 @@ This workflow does not upload, publish, schedule, log in, open YouTube Studio, o
 
 ```text
 runs/<run_id>/package/video.mp4
+runs/<run_id>/package/thumbnail.png
 runs/<run_id>/package/title.txt
+runs/<run_id>/package/title_options.md
 runs/<run_id>/package/description.md
+runs/<run_id>/package/chapters.txt
 runs/<run_id>/package/tags.txt
+runs/<run_id>/package/metadata_qa.yml
 runs/<run_id>/package/upload_checklist.md
+runs/<run_id>/package/youtube/video.mp4
 runs/<run_id>/package/handoff.publish-package.yml
 ```
 

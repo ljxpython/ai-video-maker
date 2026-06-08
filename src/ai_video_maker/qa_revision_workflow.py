@@ -50,13 +50,16 @@ def generate_qa_revision(ctx: RunContext) -> dict[str, Any]:
 
     passed = all(item["passed"] for item in checks)
     revision_skill = _revision_skill(checks)
-    handoff = _handoff(ctx, passed, revision_skill)
+    issues = _issues_from_checks(checks)
+    handoff = _handoff(ctx, passed, revision_skill, issues)
 
     report.write_text(_report(ctx, checks, probe, handoff, screenshot), encoding="utf-8")
+    write_yaml(ctx.path("qa/issues.yml"), {"version": 1, "issues": issues})
     write_yaml(ctx.path("qa/handoff.qa-revision.yml"), handoff)
 
     record_artifact(ctx, "qa_report", "markdown", report, "qa-revision")
     record_artifact(ctx, "qa_ffprobe", "json", ffprobe_json, "qa-revision")
+    record_artifact(ctx, "qa_issues", "yaml", ctx.path("qa/issues.yml"), "qa-revision")
     if screenshot.exists():
         record_artifact(ctx, "qa_screenshot", "image", screenshot, "qa-revision")
     record_artifact(ctx, "qa_revision_handoff", "yaml", ctx.path("qa/handoff.qa-revision.yml"), "qa-revision")
@@ -122,7 +125,37 @@ def _revision_skill(checks: list[dict[str, Any]]) -> str:
     return "edit-render"
 
 
-def _handoff(ctx: RunContext, passed: bool, revision_skill: str) -> dict[str, Any]:
+def _issues_from_checks(checks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    issues = []
+    for item in checks:
+        if item["passed"]:
+            continue
+        issue_id = str(item["id"])
+        issues.append(
+            {
+                "id": issue_id,
+                "status": "open",
+                "severity": "high" if issue_id in {"video_file", "video_stream", "audio_stream"} else "medium",
+                "category": _issue_category(issue_id),
+                "source_skill": "qa-revision",
+                "revision_skill_suggestion": _revision_skill([item]),
+                "message": item["detail"],
+                "affected_outputs": ["render/final_16x9.mp4"],
+                "evidence": ["qa/report.md"],
+            }
+        )
+    return issues
+
+
+def _issue_category(issue_id: str) -> str:
+    if issue_id in {"audio_stream"}:
+        return "audio"
+    if issue_id in {"captions_non_empty"}:
+        return "subtitle"
+    return "video"
+
+
+def _handoff(ctx: RunContext, passed: bool, revision_skill: str, issues: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "skill": "qa-revision",
         "run_id": ctx.run_id,
@@ -131,8 +164,10 @@ def _handoff(ctx: RunContext, passed: bool, revision_skill: str) -> dict[str, An
             "qa/report.md",
             "qa/ffprobe.json",
             "qa/screenshots/frame_6s.png",
+            "qa/issues.yml",
             "qa/handoff.qa-revision.yml",
         ],
+        "issues": [item["id"] for item in issues],
         "review_checklist": [
             "Confirm final video is playable",
             "Confirm QA report has video and audio streams",

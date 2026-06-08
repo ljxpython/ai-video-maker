@@ -48,11 +48,15 @@ The first child skills are already defined as separate P0 skills. Later workflow
 | `video-brief` | Align requirement, audience, platform, duration, style, constraints | `brief.yml` | `brief` |
 | `video-plan` | Build storyboard, asset plan, capability plan, production steps | `plan/storyboard.yml`, `plan/asset_plan.yml`, `plan/capability_plan.yml` | `plan` |
 | `video-script` | Write narration, subtitles draft, screen action script | `script/narration.zh.txt`, `script/screen_actions.md` | plan revision if needed |
-| `browser-capture` | Inspect, screenshot, or record browser/Chrome/desktop interactions | `assets/browser/*`, `qa/browser_preflight.*` | `execution` |
+| `browser-capture` | Inspect, screenshot, or record public/local browser interactions | `assets/browser/*`, `qa/browser_capture.*` | `execution` |
+| `terminal-capture` | Run approved safe terminal commands and render output cards | `assets/terminal/*`, `qa/terminal_capture.*` | `execution` |
+| `chrome-capture` | Plan or record authenticated Chrome visible-page results | `assets/chrome/*`, `qa/chrome_operation.*` | `execution` |
+| `desktop-capture` | Plan or record desktop GUI visible results | `assets/desktop/*`, `qa/desktop_operation.*` | `execution` |
 | `voice-subtitle` | Generate AI voice and subtitles | `audio/narration.mp3`, `subtitles/captions.srt` | none unless revision |
-| `edit-render` | Compose, edit, and render the final horizontal video | `render/final_16x9.mp4` | none unless revision |
-| `qa-revision` | Verify video quality and route fixes | `qa/report.md` | revision confirmation if needed |
-| `publish-package` | Prepare video, title, description, tags, upload checklist | `package/*` | `upload`, `publish` |
+| `edit-render` | Compose, edit, and render final horizontal/vertical videos | `render/final_16x9.mp4`, `render/final_9x16.mp4` | none unless revision |
+| `qa-revision` | Verify video quality and route fixes | `qa/report.md`, `qa/issues.yml` | revision confirmation if needed |
+| `publish-package` | Prepare video, thumbnail, chapters, metadata, upload checklist | `package/*` | `upload`, `publish` |
+| `youtube-upload` | Prepare YouTube upload plan and dry-run; gated real upload/publish entry | `upload/*` | `upload`, `publish` |
 
 ## Review Model
 

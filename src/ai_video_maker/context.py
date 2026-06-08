@@ -12,11 +12,19 @@ RUN_DIRS = [
     "plan",
     "script",
     "assets",
+    "assets/browser/steps",
+    "assets/chrome",
+    "assets/desktop",
+    "assets/terminal/cards",
+    "assets/terminal/logs",
     "audio",
+    "orchestrator",
+    "revisions",
     "subtitles",
     "render",
     "qa/screenshots",
     "package",
+    "upload",
 ]
 
 

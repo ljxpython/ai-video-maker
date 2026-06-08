@@ -1,15 +1,15 @@
 ---
 name: edit-render
-description: Use when AI Video Maker needs to compose storyboard cards, optional browser recording footage, narration audio, and subtitles into a horizontal 16:9 video and hand off to QA.
+description: Use when AI Video Maker needs to compose storyboard cards, optional browser recordings, terminal cards, narration audio, and subtitles into horizontal or vertical videos and hand off to QA.
 ---
 
 # Edit Render
 
 ## Purpose
 
-Render the reviewed `voice-subtitle` outputs into a horizontal YouTube video.
+Render the reviewed `voice-subtitle` outputs into YouTube 16:9 and optional Shorts 9:16 videos.
 
-First version supports “browser recording + storyboard card” mixed rendering. If no browser recording exists, render the storyboard as card sections.
+Current version supports storyboard cards, browser recording footage, and terminal cards.
 
 ## Inputs
 
@@ -19,14 +19,16 @@ First version supports “browser recording + storyboard card” mixed rendering
 - `plan/storyboard.yml`
 - Optional `assets/browser/handoff.browser-capture.yml`
 - Optional `assets/browser/demo.webm`
+- Optional `assets/terminal/handoff.terminal-capture.yml`
+- Optional render profile: `youtube_16x9` or `shorts_9x16`
 
 ## Workflow
 
 1. Confirm `voice-subtitle` handoff exists.
 2. Render storyboard card sections.
-3. Insert browser recording footage when available.
+3. Insert browser recording or terminal cards when available.
 4. Burn captions visually into the frame.
-5. Write `render/draft.mp4` and `render/final_16x9.mp4`.
+5. Write profile outputs such as `render/final_16x9.mp4` and `render/final_9x16.mp4`.
 6. Write `render/handoff.edit-render.yml`.
 7. Present soft review and recommend `qa-revision`.
 
@@ -35,6 +37,7 @@ First version supports “browser recording + storyboard card” mixed rendering
 ```text
 runs/<run_id>/render/draft.mp4
 runs/<run_id>/render/final_16x9.mp4
+runs/<run_id>/render/final_9x16.mp4
 runs/<run_id>/render/handoff.edit-render.yml
 ```
 

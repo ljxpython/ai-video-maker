@@ -5,24 +5,39 @@ from typing import Any
 from .artifacts import record_artifact
 from .context import RunContext
 from .io import read_yaml, write_yaml
+from .stages import pipeline_config
 
 
 def generate_video_script(ctx: RunContext) -> dict[str, Any]:
     if _approval_status(ctx, "plan") != "approved":
         raise PermissionError("plan gate must be approved before video-script outputs can be generated")
 
+    pipeline = pipeline_config(ctx)
     storyboard = read_yaml(ctx.path("plan/storyboard.yml"))
     capability_plan = read_yaml(ctx.path("plan/capability_plan.yml"))
     narration = ctx.path("script/narration.zh.txt").read_text(encoding="utf-8").strip()
-    next_skill = _next_skill_from_capabilities(capability_plan)
+    terminal_actions = _terminal_actions_yaml(pipeline, capability_plan)
+    if terminal_actions:
+        write_yaml(ctx.path("script/terminal_actions.yml"), terminal_actions)
+    screen_actions = _screen_actions_yaml(ctx, capability_plan)
+    if screen_actions:
+        write_yaml(ctx.path("script/screen_actions.yml"), screen_actions)
+    next_skill = _next_skill_from_context(pipeline, capability_plan, bool(screen_actions), bool(terminal_actions))
 
     ctx.path("script/screen_actions.md").write_text(_screen_actions_markdown(storyboard), encoding="utf-8")
+    if terminal_actions:
+        ctx.path("script/terminal_actions.md").write_text(_terminal_actions_markdown(terminal_actions), encoding="utf-8")
     ctx.path("script/subtitle_draft.srt").write_text(_subtitle_draft(narration, storyboard), encoding="utf-8")
     ctx.path("script/shot_notes.md").write_text(_shot_notes_markdown(storyboard), encoding="utf-8")
     handoff = _handoff(ctx, next_skill, capability_plan)
     write_yaml(ctx.path("script/handoff.video-script.yml"), handoff)
 
     record_artifact(ctx, "screen_actions", "markdown", ctx.path("script/screen_actions.md"), "script")
+    if screen_actions:
+        record_artifact(ctx, "screen_actions_yml", "yaml", ctx.path("script/screen_actions.yml"), "script")
+    if terminal_actions:
+        record_artifact(ctx, "terminal_actions", "markdown", ctx.path("script/terminal_actions.md"), "script")
+        record_artifact(ctx, "terminal_actions_yml", "yaml", ctx.path("script/terminal_actions.yml"), "script")
     record_artifact(ctx, "subtitle_draft", "subtitle", ctx.path("script/subtitle_draft.srt"), "script")
     record_artifact(ctx, "shot_notes", "markdown", ctx.path("script/shot_notes.md"), "script")
     record_artifact(ctx, "video_script_handoff", "yaml", ctx.path("script/handoff.video-script.yml"), "script")
@@ -35,9 +50,20 @@ def _approval_status(ctx: RunContext, gate: str) -> str:
     return str(approvals.get(gate, {}).get("status", "pending"))
 
 
-def _next_skill_from_capabilities(capability_plan: dict[str, Any]) -> str:
+def _next_skill_from_context(pipeline: dict[str, Any], capability_plan: dict[str, Any], has_screen_actions: bool, has_terminal_actions: bool) -> str:
     required = capability_plan.get("required", [])
-    return "browser-capture" if isinstance(required, list) and required else "voice-subtitle"
+    required_list = [str(item) for item in required] if isinstance(required, list) else []
+    if "browser" in required_list:
+        return "browser-capture"
+    if "chrome" in required_list:
+        return "chrome-capture"
+    if "computer_use" in required_list:
+        return "desktop-capture"
+    if has_terminal_actions or str(pipeline.get("source", {}).get("type", "")) == "repository":
+        return "terminal-capture"
+    if has_screen_actions:
+        return "browser-capture"
+    return "voice-subtitle"
 
 
 def _screen_actions_markdown(storyboard: dict[str, Any]) -> str:
@@ -54,6 +80,87 @@ def _screen_actions_markdown(storyboard: dict[str, Any]) -> str:
             ]
         )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def _terminal_actions_yaml(pipeline: dict[str, Any], capability_plan: dict[str, Any]) -> dict[str, Any]:
+    source = pipeline.get("source", {})
+    source_type = str(source.get("type", "")).strip()
+    if source_type != "repository":
+        return {}
+
+    return {
+        "version": 1,
+        "working_directory": ".",
+        "requires_gate": "execution",
+        "commands": [
+            {
+                "id": "check_python",
+                "title": "检查 Python 版本",
+                "command": "python --version",
+                "allow_failure": False,
+                "highlight": ["Python"],
+            },
+            {
+                "id": "git_status",
+                "title": "查看 Git 状态",
+                "command": "git status",
+                "allow_failure": False,
+                "highlight": ["working tree"],
+            },
+            {
+                "id": "run_tests",
+                "title": "运行测试",
+                "command": ".venv/bin/python -m unittest discover -s tests",
+                "allow_failure": False,
+                "highlight": ["OK"],
+            },
+        ],
+    }
+
+
+def _terminal_actions_markdown(terminal_actions: dict[str, Any]) -> str:
+    lines = ["# Terminal Actions", ""]
+    for command in terminal_actions.get("commands", []):
+        if not isinstance(command, dict):
+            continue
+        lines.extend(
+            [
+                f"## {command.get('id', '')}",
+                f"- Title: {command.get('title', '')}",
+                f"- Command: `{command.get('command', '')}`",
+                "",
+            ]
+        )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _screen_actions_yaml(ctx: RunContext, capability_plan: dict[str, Any]) -> dict[str, Any]:
+    required = capability_plan.get("required", [])
+    if not isinstance(required, list) or "browser" not in required:
+        return {}
+
+    preflight = read_yaml(ctx.path("plan/browser_preflight.yml"))
+    target_url = str(preflight.get("target_url", "")).strip()
+    if not target_url:
+        return {}
+    viewport = preflight.get("viewport", {})
+    recording = preflight.get("recording", {})
+    return {
+        "version": 1,
+        "target_url": target_url,
+        "viewport": viewport if isinstance(viewport, dict) else {"width": 1920, "height": 1080},
+        "recording": {
+            "enabled": True,
+            "output": "assets/browser/demo.webm",
+            "duration_seconds": int(recording.get("duration_seconds", 5)) if isinstance(recording, dict) else 5,
+        },
+        "actions": [
+            {"id": "open_target", "type": "goto", "url": target_url},
+            {"id": "wait_loaded", "type": "wait", "duration_ms": 1000},
+            {"id": "screenshot_loaded", "type": "screenshot", "output": "assets/browser/steps/003_screenshot_loaded.png"},
+            {"id": "record_overview", "type": "record_segment", "duration_ms": 3000},
+        ],
+    }
 
 
 def _shot_notes_markdown(storyboard: dict[str, Any]) -> str:
@@ -142,6 +249,7 @@ def _handoff(ctx: RunContext, next_skill: str, capability_plan: dict[str, Any]) 
         "outputs": [
             "script/narration.zh.txt",
             "script/screen_actions.md",
+            "script/screen_actions.yml",
             "script/subtitle_draft.srt",
             "script/shot_notes.md",
         ],

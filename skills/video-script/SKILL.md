@@ -29,7 +29,10 @@ This is a soft-review workflow. It does not require a hard gate unless the scrip
 6. Check that every narration segment maps to a visual.
 7. Present the script for soft review.
 8. Recommend the next skill:
-   - `browser-capture` when real browser, Chrome, or GUI capture is needed.
+   - `browser-capture` when public/local webpage capture is needed.
+   - `terminal-capture` when the plan includes approved safe terminal commands.
+   - `chrome-capture` when authenticated Chrome results need to be recorded.
+   - `desktop-capture` when desktop GUI results need to be recorded.
    - `voice-subtitle` when visuals are already available or generated.
    - `video-plan` when the script reveals a plan problem.
 
@@ -81,8 +84,8 @@ review_checklist:
 risks:
   - execution gate is required before browser, Chrome, or desktop capture
 next_gate: null
-next_skill_suggestion: browser-capture
+next_skill_suggestion: terminal-capture
 revision_skill_suggestion: video-script
 user_action_required: false
-user_message: "Please review the narration and screen actions. If approved, the next recommended skill is browser-capture when capture is needed, otherwise voice-subtitle."
+user_message: "Please review the narration and screen actions. If approved, the next recommended skill is terminal-capture, browser-capture, chrome-capture, desktop-capture, or voice-subtitle depending on the capture need."
 ```

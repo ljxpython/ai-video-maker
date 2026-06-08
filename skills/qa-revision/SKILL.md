@@ -22,7 +22,7 @@ Check the rendered video before packaging. This is a soft-review workflow.
 3. Run ffprobe and verify video and audio streams.
 4. Check subtitles are present.
 5. Extract a keyframe screenshot.
-6. Write QA report and handoff.
+6. Write QA report, issue ledger, and handoff.
 7. Recommend `publish-package` when checks pass.
 8. Recommend `edit-render` or `voice-subtitle` when checks fail.
 
@@ -32,6 +32,7 @@ Check the rendered video before packaging. This is a soft-review workflow.
 runs/<run_id>/qa/report.md
 runs/<run_id>/qa/ffprobe.json
 runs/<run_id>/qa/screenshots/frame_6s.png
+runs/<run_id>/qa/issues.yml
 runs/<run_id>/qa/handoff.qa-revision.yml
 ```
 

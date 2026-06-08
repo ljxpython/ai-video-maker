@@ -1,0 +1,42 @@
+version: 1
+project: ai-video-maker
+skills:
+  - name: ai-video-maker
+    path: skills/ai-video-maker
+    role: orchestrator
+  - name: video-brief
+    path: skills/video-brief
+    role: workflow
+  - name: video-plan
+    path: skills/video-plan
+    role: workflow
+  - name: video-script
+    path: skills/video-script
+    role: workflow
+  - name: browser-capture
+    path: skills/browser-capture
+    role: capture
+  - name: terminal-capture
+    path: skills/terminal-capture
+    role: capture
+  - name: chrome-capture
+    path: skills/chrome-capture
+    role: capture
+  - name: desktop-capture
+    path: skills/desktop-capture
+    role: capture
+  - name: voice-subtitle
+    path: skills/voice-subtitle
+    role: workflow
+  - name: edit-render
+    path: skills/edit-render
+    role: workflow
+  - name: qa-revision
+    path: skills/qa-revision
+    role: workflow
+  - name: publish-package
+    path: skills/publish-package
+    role: publish
+  - name: youtube-upload
+    path: skills/youtube-upload
+    role: publish
