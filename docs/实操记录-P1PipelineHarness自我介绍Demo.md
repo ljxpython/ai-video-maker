@@ -12,7 +12,7 @@
 pipeline.yml
 -> brief.yml
 -> brief gate
--> storyboard / asset_plan / narration
+-> storyboard / asset_plan / capability_plan / narration
 -> plan gate
 -> voice / subtitles
 -> render
@@ -138,7 +138,7 @@ approvals:
   execution: pending
   upload: pending
   publish: pending
-artifacts: 13
+artifacts: 14
 ```
 
 这说明 P1 gate 行为已经生效：
@@ -220,7 +220,7 @@ pipeline valid
 结果：
 
 ```text
-Ran 23 tests
+Ran 26 tests
 OK
 ```
 
@@ -228,9 +228,11 @@ OK
 
 - CLI `run` / `status` 参数解析。
 - CLI `validate` 参数解析。
+- CLI `capabilities` 参数解析。
 - pipeline 初始化只生成 brief。
 - brief gate 通过后才生成 plan。
 - GUI capability required 时必须等待 execution gate。
+- capability adapter dry-run 计划生成。
 - pipeline schema 校验。
 - pipeline 完成后清理 stale `next_action`。
 
@@ -249,7 +251,7 @@ P1 pipeline harness 已经完成最小闭环：
 
 下一步建议：
 
-1. 抽象 capability adapter，为 `$browser` 录制真实 Web Demo 做准备。
-2. 增加仓库讲解、产品演示、SOP 教程三个模板。
-3. 增加 `pipeline.yml` 到 run 的更细粒度 resume 策略。
-4. 为 YouTube 上传包增加 metadata QA。
+1. 增加仓库讲解、产品演示、SOP 教程三个模板。
+2. 增加 `pipeline.yml` 到 run 的更细粒度 resume 策略。
+3. 为 YouTube 上传包增加 metadata QA。
+4. 接入 `$browser` 做第一个本地 Web Demo 录制前检查。

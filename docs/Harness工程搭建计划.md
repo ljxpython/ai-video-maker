@@ -121,6 +121,12 @@ ai-video-maker status --run runs/p1-self-intro
 ai-video-maker validate --pipeline pipeline.example.yml
 ```
 
+查看能力适配器 dry-run：
+
+```bash
+ai-video-maker capabilities --pipeline pipeline.example.yml
+```
+
 继续推进：
 
 ```bash
@@ -132,6 +138,7 @@ ai-video-maker run --run runs/p1-self-intro
 ```text
 pipeline.yml -> brief.yml -> 等待 brief 确认
 brief approved -> storyboard/asset_plan/narration -> 等待 plan 确认
+brief approved -> capability_plan -> 记录 GUI 能力 dry-run
 plan approved -> voice/render/qa/package
 GUI capability required -> 等待 execution 确认
 upload/publish -> P1 不自动执行

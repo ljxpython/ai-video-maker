@@ -2,6 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .capabilities import capability_plan_from_pipeline
 from .context import create_run, load_run
 from .io import read_yaml
 from .pipeline import advance_pipeline, initialize_pipeline_run, status_summary, validate_pipeline
@@ -82,6 +83,31 @@ def command_validate(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
 
+def command_capabilities(args: argparse.Namespace) -> None:
+    root = find_project_root()
+    if args.pipeline:
+        pipeline_path = Path(args.pipeline)
+        if not pipeline_path.is_absolute():
+            pipeline_path = root / pipeline_path
+        pipeline = read_yaml(pipeline_path)
+    else:
+        ctx = load_run(root, args.run)
+        pipeline = read_yaml(ctx.path("pipeline.yml"))
+
+    plan = capability_plan_from_pipeline(pipeline)
+    if args.json:
+        print(json.dumps(plan, ensure_ascii=False, indent=2))
+        return
+
+    print("capability dry-run")
+    print(f"mode: {plan['mode']}")
+    required = ", ".join(plan["required"]) if plan["required"] else "none"
+    print(f"required: {required}")
+    for item in plan["capabilities"]:
+        marker = "required" if item["required"] else "optional"
+        print(f"- {item['name']}: {marker}, {item['status']}, {item['action']}")
+
+
 def command_voice(args: argparse.Namespace) -> None:
     root = find_project_root()
     ctx = load_run(root, args.run)
@@ -157,6 +183,13 @@ def build_parser() -> argparse.ArgumentParser:
     validate_parser.add_argument("--pipeline", required=True)
     validate_parser.add_argument("--json", action="store_true")
     validate_parser.set_defaults(func=command_validate)
+
+    capabilities_parser = sub.add_parser("capabilities", help="show capability adapter dry-run plan")
+    capabilities_target = capabilities_parser.add_mutually_exclusive_group(required=True)
+    capabilities_target.add_argument("--pipeline")
+    capabilities_target.add_argument("--run")
+    capabilities_parser.add_argument("--json", action="store_true")
+    capabilities_parser.set_defaults(func=command_capabilities)
 
     voice_parser = sub.add_parser("voice", help="generate narration audio and subtitles")
     voice_parser.add_argument("--run", required=True)

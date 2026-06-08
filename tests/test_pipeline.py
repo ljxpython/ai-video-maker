@@ -37,12 +37,14 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result["status"], "awaiting_plan_approval")
             self.assertTrue(ctx.path("plan/storyboard.yml").exists())
             self.assertTrue(ctx.path("plan/asset_plan.yml").exists())
+            self.assertTrue(ctx.path("plan/capability_plan.yml").exists())
             self.assertTrue(ctx.path("script/narration.zh.txt").exists())
 
             artifacts = read_yaml(ctx.artifacts_path)
             ids = {item["id"] for item in artifacts["artifacts"]}
             self.assertIn("pipeline", ids)
             self.assertIn("asset_plan", ids)
+            self.assertIn("capability_plan", ids)
 
     def test_gui_capability_requires_execution_approval_before_production(self):
         with tempfile.TemporaryDirectory() as tmp:

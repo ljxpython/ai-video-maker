@@ -103,6 +103,20 @@ GUI 工具是能力适配器，不是核心依赖。
 
 如果任何 GUI capability 的 `required` 为 `true`，pipeline 会在制作前等待 `execution` gate 确认。
 
+查看 capability dry-run：
+
+```bash
+ai-video-maker capabilities --pipeline pipeline.example.yml
+```
+
+在 plan 阶段会生成：
+
+```text
+runs/<run_id>/plan/capability_plan.yml
+```
+
+P0 阶段只生成 dry-run 计划，不会真正打开浏览器、Chrome 或桌面应用。
+
 ### `upload`
 
 | 字段 | 类型 | 说明 |
@@ -150,7 +164,7 @@ pipeline invalid
 
 ```text
 pipeline.yml -> brief.yml -> 等待 brief 确认
-brief approved -> storyboard / asset_plan / narration -> 等待 plan 确认
+brief approved -> storyboard / asset_plan / capability_plan / narration -> 等待 plan 确认
 plan approved -> voice / subtitles / render / QA / package
 GUI capability required -> 等待 execution 确认
 upload / publish -> 永不自动执行

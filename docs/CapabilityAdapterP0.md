@@ -1,0 +1,132 @@
+# Capability Adapter P0
+
+更新时间：2026-06-08
+
+Capability Adapter P0 的目标是先把 `$browser`、`$chrome`、`$computer-use` 变成统一、可检查、可记录的 dry-run 能力计划。
+
+P0 不执行真实 GUI 操作。
+
+## 1. 定位
+
+GUI 能力是适配器，不是核心依赖。
+
+当前核心 harness 仍然使用 CLI 和脚本完成：
+
+```text
+brief -> plan -> voice -> render -> QA -> package
+```
+
+GUI 能力只在需要真实网页演示、登录态页面、桌面软件、文件选择器或上传操作时接入。
+
+## 2. 当前支持能力
+
+| 能力 | 标签 | 用途 | Gate |
+|---|---|---|---|
+| `browser` | `$browser` | 普通网页、本地 Web Demo、截图、录制前检查 | `execution` |
+| `chrome` | `$chrome` | 需要用户已有 Chrome 登录态的页面 | `execution` |
+| `computer_use` | `$computer-use` | 桌面 GUI 软件、文件选择器、原生对话框 | `execution` |
+
+## 3. Dry-Run 输出
+
+查看 pipeline 的能力计划：
+
+```bash
+ai-video-maker capabilities --pipeline pipeline.example.yml
+```
+
+输出：
+
+```text
+capability dry-run
+mode: dry_run
+required: none
+- browser: optional, optional, dry_run_only
+- chrome: optional, optional, dry_run_only
+- computer_use: optional, optional, dry_run_only
+```
+
+JSON 输出：
+
+```bash
+ai-video-maker capabilities --pipeline pipeline.example.yml --json
+```
+
+## 4. Run 产物
+
+当 brief 通过并生成 plan 时，harness 会生成：
+
+```text
+runs/<run_id>/plan/capability_plan.yml
+```
+
+并写入：
+
+```text
+runs/<run_id>/artifacts.yml
+```
+
+示例字段：
+
+```yaml
+mode: dry_run
+required: []
+capabilities:
+  - name: browser
+    label: $browser
+    required: false
+    gate: execution
+    status: optional
+    action: dry_run_only
+```
+
+## 5. Gate 规则
+
+如果任意 capability 的 `required` 为 `true`：
+
+```yaml
+capabilities:
+  browser:
+    required: true
+```
+
+pipeline 会在制作前停在：
+
+```text
+awaiting_execution_approval
+```
+
+必须确认：
+
+```bash
+ai-video-maker approve --run runs/<run_id> --gate execution --summary "确认执行 GUI 操作"
+```
+
+P0 仍然不会真的调用 GUI。这个 gate 是给后续真实 adapter 执行前使用的安全边界。
+
+## 6. Smoke 验证
+
+本次执行：
+
+```bash
+ai-video-maker run --pipeline pipeline.example.yml --run-id capability-plan-smoke --overwrite
+ai-video-maker approve --run runs/capability-plan-smoke --gate brief --summary "确认 capability dry-run smoke brief"
+ai-video-maker run --run runs/capability-plan-smoke
+ai-video-maker capabilities --run runs/capability-plan-smoke --json
+```
+
+结果：
+
+```text
+status: awaiting_plan_approval
+artifacts: 6
+plan/capability_plan.yml generated
+```
+
+没有调用 `$browser`、`$chrome`、`$computer-use`，没有打开任何 GUI。
+
+## 7. 下一步
+
+1. 为 capability task 增加更细的动作类型，例如 `screenshot`、`record_screen`、`upload_file`。
+2. 在 `execution` gate 通过后执行 adapter dry-run task 记录。
+3. 接入 `$browser` 做第一个本地 Web Demo 录制前检查。
+4. 给 `$chrome` 和 `$computer-use` 增加更严格的账号/文件侧效应确认。

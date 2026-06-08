@@ -65,11 +65,17 @@ Validate a pipeline before creating a run:
 ai-video-maker validate --pipeline pipeline.example.yml
 ```
 
+Inspect GUI capability dry-run:
+
+```bash
+ai-video-maker capabilities --pipeline pipeline.example.yml
+```
+
 P1 pipeline behavior:
 
 ```text
 pipeline.yml -> brief.yml -> wait for brief approval
-brief approved -> storyboard / asset_plan / narration -> wait for plan approval
+brief approved -> storyboard / asset_plan / capability_plan / narration -> wait for plan approval
 plan approved -> voice / subtitles / render / QA / package
 GUI capability required -> wait for execution approval
 upload / publish -> never automatic

@@ -4,12 +4,10 @@ from pathlib import Path
 from typing import Any
 
 from .artifacts import record_artifact
+from .capabilities import GUI_CAPABILITIES, capability_plan_from_pipeline, required_capability_names
 from .context import RunContext
 from .io import read_yaml, write_yaml
 from .stages import generate_voice, package, qa, render
-
-
-GUI_CAPABILITIES = ("browser", "chrome", "computer_use")
 
 
 def load_pipeline(path: Path) -> dict[str, Any]:
@@ -99,13 +97,7 @@ def is_gate_approved(ctx: RunContext, gate: str) -> bool:
 
 
 def pipeline_requires_gui(pipeline: dict[str, Any]) -> list[str]:
-    capabilities = pipeline.get("capabilities", {})
-    required = []
-    for name in GUI_CAPABILITIES:
-        config = capabilities.get(name, {})
-        if isinstance(config, dict) and config.get("required") is True:
-            required.append(name)
-    return required
+    return required_capability_names(pipeline)
 
 
 def initialize_pipeline_run(ctx: RunContext, pipeline_path: Path) -> None:
@@ -135,6 +127,7 @@ def create_plan_from_pipeline(ctx: RunContext) -> None:
 
     write_yaml(ctx.path("plan/storyboard.yml"), storyboard)
     write_yaml(ctx.path("plan/asset_plan.yml"), _asset_plan_from_pipeline(pipeline))
+    write_yaml(ctx.path("plan/capability_plan.yml"), capability_plan_from_pipeline(pipeline))
     ctx.path("script/narration.zh.txt").write_text(_narration_from_pipeline(pipeline), encoding="utf-8")
     ctx.update_state(
         "awaiting_plan_approval",
@@ -144,6 +137,7 @@ def create_plan_from_pipeline(ctx: RunContext) -> None:
 
     record_artifact(ctx, "storyboard", "yaml", ctx.path("plan/storyboard.yml"), "plan")
     record_artifact(ctx, "asset_plan", "yaml", ctx.path("plan/asset_plan.yml"), "plan")
+    record_artifact(ctx, "capability_plan", "yaml", ctx.path("plan/capability_plan.yml"), "plan")
     record_artifact(ctx, "narration_script", "text", ctx.path("script/narration.zh.txt"), "plan")
 
 
