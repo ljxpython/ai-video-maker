@@ -2,6 +2,8 @@
 
 本文档说明如何把 AI Video Maker 的 workflow skills 安装到用户自己的 Codex skills 目录。
 
+仓库根目录已经自带 `.agents/skills -> skills` 入口，所以很多支持本地 skill 发现的 agent 可以直接识别，不需要先手工搬运目录。
+
 ## 支持的 skills
 
 完整列表以 `skills/manifest.yml` 为准。当前包括：
@@ -54,6 +56,28 @@ rtk ".venv/bin/python" scripts/install_skills.py --copy --target "<codex-skills-
 
 ```bash
 rtk ".venv/bin/python" scripts/install_skills.py --link --target "<codex-skills-dir>"
+```
+
+## uv 部署方式
+
+如果你想让 AI 直接帮你部署环境，推荐先发下面这段提示词：
+
+```text
+请帮我在当前仓库里完成 AI Video Maker 的环境部署。
+先检查 uv 是否可用；如果没有，就按官方方式安装 uv。
+然后执行 uv sync，创建或更新 .venv。
+确认仓库根目录有 .agents/skills -> skills 入口；如果没有，请补上。
+最后依次执行 uv run ai-video-maker skills validate、uv run ai-video-maker validate --pipeline pipeline.example.yml、uv run python -m unittest discover -s tests。
+不要读取任何 token、cookie、密码或私有配置。
+```
+
+最小手动命令：
+
+```bash
+uv sync
+uv run ai-video-maker skills validate
+uv run ai-video-maker validate --pipeline pipeline.example.yml
+uv run python -m unittest discover -s tests
 ```
 
 ## 安全规则

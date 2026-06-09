@@ -27,6 +27,15 @@ def validate_skills(project_root: Path) -> dict[str, Any]:
     skills = list_skills(project_root)
     errors: list[str] = []
     names: set[str] = set()
+
+    agent_entry = project_root / ".agents" / "skills"
+    if not agent_entry.exists():
+        errors.append(".agents/skills entry is missing")
+    else:
+        expected = (project_root / "skills").resolve()
+        if agent_entry.resolve() != expected:
+            errors.append(".agents/skills must point to repository skills/")
+
     for item in skills:
         name = str(item.get("name", "")).strip()
         relative = str(item.get("path", "")).strip()
