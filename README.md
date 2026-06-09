@@ -274,7 +274,7 @@ cp "output/smoke/demo_narration.vtt" "output/smoke/demo_narration.srt"
 - [开发规划：P1 到 P9](./docs/开发规划-P1到P9.md)
 - [Skills 安装指南](./docs/Skills安装指南.md)
 - [环境部署提示词](./docs/环境部署提示词.md)
-- [视频制作工具链调研与执行方案](./视频制作工具链调研与执行方案.md)
+- [视频制作工具链调研与执行方案](./docs/视频制作工具链调研与执行方案.md)
 - [方案 A 安装配置记录](./docs/方案A安装配置记录.md)
 - [AI Video Maker Skill](./skills/ai-video-maker/SKILL.md)
 - [Video Brief Skill](./skills/video-brief/SKILL.md)
